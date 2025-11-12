@@ -1,3 +1,4 @@
+.DS_Store
 .venv/
 __pycache__/
 *.pyc
@@ -5,4 +6,26 @@ __pycache__/
 .env
 .token*
 public/*.ics
+
+README.md
+
+# Cache directories
 .cache/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+
+# Test coverage
+htmlcov/
+.coverage
+coverage.xml
+
+# IDE
+.vscode/
+
+# Build artifacts
+fixture_fetcher.egg-info/
+
+# Runtime data (generated, not source)
+data/
+app.log

@@ -8,7 +8,7 @@ from typing import Optional
 @dataclass
 class Fixture:
     """Data class representing a football fixture.
-    
+
     Attributes:
         id: Unique identifier for the match.
         competition: Full name of the competition.
@@ -22,6 +22,7 @@ class Fixture:
         tv: TV broadcaster information, if available.
         is_home: Whether the fixture is a home match for the team of interest.
     """
+
     id: str
     competition: str
     competition_code: str
