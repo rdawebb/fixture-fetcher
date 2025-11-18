@@ -323,8 +323,8 @@ class FDClient:
                 logger.warning(f"Failed to parse kickoff time for match {match_id}: {e}")
                 utc_kickoff = None
 
-            home_team = m["homeTeam"]["name"]
-            away_team = m["awayTeam"]["name"]
+            home_team = m["homeTeam"]["shortName"]
+            away_team = m["awayTeam"]["shortName"]
             is_home = home_team.lower() == team_name.lower()
             venue = m.get("venue")
 

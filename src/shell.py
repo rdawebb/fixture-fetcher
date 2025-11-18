@@ -1,12 +1,14 @@
 """Command-line interface for the fixture fetcher."""
 
-import time
+from pathlib import Path
 
 from beaupy import confirm, select, select_multiple
 from beaupy.spinners import DOTS, Spinner
 from rich.align import Align
 from rich.console import Console
 from rich.panel import Panel
+
+from src.cli import build
 
 console = Console()
 
@@ -35,9 +37,7 @@ class CLI:
         """Prompt the user for input interactively."""
         if confirm("Do you want to fetch football fixtures?"):
             teams = [
-                "Manchester United",
-                "Manchester United Women",
-                "Wolverhampton Wanderers",
+                "Manchester United FC",
             ]
 
             self.console.print("Select a team to fetch fixtures for:")
@@ -46,8 +46,6 @@ class CLI:
 
             competitions = [
                 "Premier League",
-                "FA Cup",
-                "EFL Cup",
             ]
 
             self.console.print("Select competitions to fetch fixtures for:")
@@ -58,10 +56,12 @@ class CLI:
 
             spinner = Spinner(DOTS, text="Fetching fixtures...")
             spinner.start()
-            time.sleep(2)  # Simulate fetching time
+            build(team=selected_team, competitions="PL", output=Path("public"))
             spinner.stop()
 
-            success_message = f"⚽️ [bold green]Successfully fetched {', '.join(selected_competition)} fixtures for {selected_team}![/bold green] ⚽️"
+            success_message = (
+                f"⚽️ [bold green]Successfully fetched fixtures for {selected_team}![/bold green] ⚽️"
+            )
             self.console.print(
                 Panel(
                     Align.center(success_message),

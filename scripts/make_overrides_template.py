@@ -1,7 +1,8 @@
 """Generate a YAML template for fixture overrides with empty TV fields."""
 
-import yaml
 from pathlib import Path
+
+import yaml
 
 from src.logic.filters import Filter
 from src.providers.football_data import FDClient
@@ -14,12 +15,13 @@ fixtures = Filter.apply_filters(fixtures, scheduled_only=True)
 
 output = {}
 for f in fixtures:
-    key = f.id
+    key = f"{f.id}@fixture-fetcher"
     game = f"{f.home_team} vs {f.away_team}"
     output[str(key)] = {
         "game": game,
+        "date": f.utc_kickoff.strftime("%Y-%m-%d %H:%M") if f.utc_kickoff else "",
         "tv": "",
     }
 
-Path("data/overrides_template.yaml").write_text(yaml.safe_dump(output))
-print("Wrote overrides template to data/overrides_template.yaml")
+Path("data/tv_overrides.yaml").write_text(yaml.safe_dump(output))
+print("Wrote overrides template to data/tv_overrides.yaml")

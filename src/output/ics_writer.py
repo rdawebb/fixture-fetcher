@@ -29,7 +29,7 @@ class ICSWriter:
         self.calendar.add("version", "2.0")
 
     def _uid(self, f: Fixture) -> str:
-        return f"{f.id}@football-fixture-fetcher"
+        return f"{f.id}@fixture-fetcher"
 
     def write(self, path: Path) -> Path:
         """Convert fixtures to an ICS file and save it.
@@ -57,6 +57,9 @@ class ICSWriter:
                 ev.add("summary", title)
 
                 parts = [fixture.competition]
+
+                if fixture.tv is not None:
+                    parts.append(f"TV: {fixture.tv}")
 
                 if fixture.matchday:
                     parts.append(f"Matchday {fixture.matchday}")

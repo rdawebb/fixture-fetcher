@@ -2,8 +2,8 @@
 
 from icalendar import Calendar
 
-from src.output.ics_writer import ICSWriter
 from src.models import Fixture
+from src.output.ics_writer import ICSWriter
 
 
 class TestICSWriter:
@@ -102,5 +102,5 @@ class TestICSWriter:
         writer = ICSWriter([sample_fixture])
         uid = writer._uid(sample_fixture)
 
-        assert uid == "12345@football-fixture-fetcher"
+        assert uid == "12345@fixture-fetcher"
         assert "@" in uid

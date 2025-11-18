@@ -1,7 +1,8 @@
 """Tests for configuration module."""
 
-import pytest
 from unittest.mock import patch
+
+import pytest
 
 from src.config import validate_config
 from src.utils.errors import ConfigurationError

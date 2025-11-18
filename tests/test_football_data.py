@@ -1,16 +1,17 @@
 """Tests for Football Data API client."""
 
-import pytest
-import yaml
 from unittest.mock import Mock, patch
 
-from src.providers.football_data import FDClient, COMP_CODES
+import pytest
+import yaml
+
+from src.providers.football_data import COMP_CODES, FDClient
 from src.utils.errors import (
     AuthenticationError,
     NotFoundError,
+    ParsingError,
     RateLimitError,
     ServerError,
-    ParsingError,
 )
 
 

@@ -9,7 +9,7 @@ description = "A Python CLI tool that fetches football fixture data and generate
 readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "MIT"}
-authors = [{name = "rdawebb", email = "your-email@example.com"}]
+authors = [{name = "rdawebb"}]
 dependencies = [
     "beaupy>=0.1.5",
     "icalendar>=4.0.9",
@@ -81,6 +81,5 @@ module = [
     "icalendar.*",
     "rich.*",
     "requests.*",
-    "dateutil.*",
 ]
 ignore_missing_imports = true

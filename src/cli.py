@@ -53,30 +53,20 @@ def _club_ics_url(team: str, mapping_path: Path) -> Optional[str]:
     return None
 
 
-@app.command()
 def build(
-    team: Optional[str] = typer.Option(None, help="Team name to build calendar for"),
-    all_teams: bool = typer.Option(False, help="Build calendar for all teams"),
-    competitions: Optional[str] = typer.Option(None, help="Competition code to filter fixtures"),
-    season: Optional[int] = typer.Option(None, help="Season year (e.g., 2025 for 2025/26 season)"),
-    home_only: bool = typer.Option(False, help="Include only home fixtures"),
-    away_only: bool = typer.Option(False, help="Include only away fixtures"),
-    televised_only: bool = typer.Option(False, help="Include only fixtures with TV info"),
-    output: Path = typer.Option(Path("public"), help="Output directory for ICS files"),
-    tv_from: str = typer.Option(
-        "auto", help="Source for TV info: 'auto', 'club_ics', or 'overrides'"
-    ),
-    overrides: Optional[Path] = typer.Option(
-        Path("data/tv_overrides.yaml"), help="Overrides YAML file path"
-    ),
-    club_ics_map: Path = typer.Option(
-        Path("data/club_ics_urls.yaml"), help="Club ICS URLs mapping YAML file path"
-    ),
-    refresh_cache: bool = typer.Option(False, help="Refresh the local team cache from the API"),
-    refresh_competitions: bool = typer.Option(
-        False, help="Refresh the local competitions cache from the API"
-    ),
-    summarise: bool = typer.Option(True, help="Print change summary (recommended)"),
+    team: Optional[str] = None,
+    competitions: Optional[str] = None,
+    season: Optional[int] = None,
+    home_only: bool = False,
+    away_only: bool = False,
+    televised_only: bool = False,
+    output: Path = Path("public"),
+    tv_from: str = "auto",
+    overrides: Optional[Path] = Path("data/tv_overrides.yaml"),
+    club_ics_map: Path = Path("data/club_ics_urls.yaml"),
+    refresh_cache: bool = False,
+    refresh_competitions: bool = False,
+    summarise: bool = True,
 ) -> None:
     """Build ICS calendar files for football fixtures.
 
@@ -102,14 +92,9 @@ def build(
     if refresh_cache:
         client.refresh_team_cache()
 
-    if all_teams:
-        teams: list[str] = []
-        logger.warning("All teams feature not yet implemented")
-    else:
-        if not team:
-            logger.error("Either --team or --all-teams must be specified.")
-            raise typer.BadParameter("Provide --team or --all-teams")
-        teams = [team]
+    if not team:
+        logger.error("Team must be specified.")
+    teams = [team]
 
     for t in teams:
         try:
@@ -124,6 +109,9 @@ def build(
             prev = load_snapshot(snap_path)
 
             stats = enrich_all(fixtures, overrides_path=overrides, club_ics_url=clubics_url)
+
+            for f in fixtures:
+                print(f"Fixture {f.id}: TV = {f.tv}")
 
             if home_only:
                 fixtures = Filter.only_home(fixtures)
@@ -154,13 +142,9 @@ def build(
             typer.echo(f"Failed to build ICS for team '{t}': {e}", err=True)
 
 
-@app.command()
 def cache_teams(
-    competitions: str = typer.Option(
-        ...,
-        help="Comma-separated competition codes to cache teams for",
-    ),
-    output: Path = typer.Option(Path("data/teams.yaml"), help="Path to cache the team data"),
+    competitions: str,
+    output: Path = Path("data/teams.yaml"),
 ) -> None:
     """Cache team data for specified competitions.
 

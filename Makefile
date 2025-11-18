@@ -26,7 +26,7 @@ format:
 	ruff format src/
 
 type-check:
-	mypy src/
+	mypy src/ --no-incremental
 
 check: lint type-check
 	@echo "✓ All checks passed!"
@@ -38,7 +38,7 @@ test-cov:
 	pytest tests/ --cov=src --cov-report=html --cov-report=term
 
 run:
-	python3 -m src.cli build --help
+	uv run python3 -m src.shell
 
 overrides:
 	python3 -m scripts.make_overrides_template

@@ -1,7 +1,8 @@
 """Tests for the filters module."""
 
-import pytest
 from datetime import datetime, timezone
+
+import pytest
 
 from src.logic.filters import Filter
 from src.utils.errors import DataProcessingError, InvalidInputError

@@ -87,7 +87,6 @@ class TestEnrichAll:
 
         result = enrich_all(
             sample_fixtures,
-            club_ics_url=None,
             overrides_path=temp_yaml_file,
         )
 
@@ -99,7 +98,6 @@ class TestEnrichAll:
         """Test enrich_all with no sources makes no changes."""
         result = enrich_all(
             sample_fixtures,
-            club_ics_url=None,
             overrides_path=None,
         )
 
@@ -112,7 +110,6 @@ class TestEnrichAll:
 
         result = enrich_all(
             sample_fixtures,
-            club_ics_url=None,
             overrides_path=non_existent,
         )
 

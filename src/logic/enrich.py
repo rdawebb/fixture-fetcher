@@ -7,7 +7,6 @@ from typing import List, Optional
 import yaml
 
 from src.models import Fixture
-from src.providers.club_ics import enrich_from_club_ics
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +30,7 @@ def apply_overrides(fixtures: List[Fixture], overrides_path: Path) -> int:
 
     applied = 0
     for key, val in data.items():
+        key = str(key)
         tv = (val or {}).get("tv")
         if not tv:
             continue
@@ -58,7 +58,6 @@ def apply_overrides(fixtures: List[Fixture], overrides_path: Path) -> int:
 
 def enrich_all(
     fixtures: List[Fixture],
-    club_ics_url: Optional[str] = None,
     overrides_path: Optional[Path] = None,
 ) -> dict:
     """Enrich fixtures with TV info from club ICS calendars and apply overrides.
@@ -73,13 +72,6 @@ def enrich_all(
     """
     before_tv = sum(1 for f in fixtures if (f.tv or "").strip())
     applied = 0
-
-    if club_ics_url:
-        try:
-            enrich_from_club_ics(fixtures, club_ics_url)
-            logger.info(f"Enriched fixtures with ICS data from {club_ics_url}")
-        except Exception as e:
-            logger.error(f"Failed to enrich fixtures from ICS URL {club_ics_url}: {e}")
 
     if overrides_path:
         try:
