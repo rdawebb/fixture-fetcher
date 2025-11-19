@@ -6,8 +6,8 @@ import logging
 from datetime import datetime
 from typing import Iterable, List
 
-from src.models import Fixture
-from src.utils.errors import DataProcessingError, InvalidInputError
+from logic.fixtures.models import Fixture
+from utils import DataProcessingError, InvalidInputError
 
 logger = logging.getLogger(__name__)
 

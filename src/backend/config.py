@@ -1,6 +1,6 @@
 """
 Configuration settings for the application.
-Includes API endpoints, tokens, and logging configuration.
+Includes API endpoints, tokens, paths, and logging configuration.
 """
 
 import os
@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 from src.utils.errors import ConfigurationError
 
-load_dotenv(Path(__file__).parent.parent / ".env")
+load_dotenv(Path(__file__).parent.parent.parent / ".env")
 
 
 # Football Data API configuration
@@ -20,7 +20,7 @@ FOOTBALL_DATA_API_TOKEN = os.getenv("FOOTBALL_DATA_API_TOKEN")
 
 # Cache configuration
 
-CACHE_PATH = Path(os.getenv("CACHE_PATH", "data/teams.yaml"))
+CACHE_PATH = Path(os.getenv("CACHE_PATH", "data/cache/teams.yaml"))
 CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 # Logging configuration

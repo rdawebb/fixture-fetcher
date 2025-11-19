@@ -4,8 +4,6 @@ import logging
 import os
 from logging.handlers import RotatingFileHandler
 
-from src.config import LOG_FILE, LOG_LEVEL
-
 
 def setup_logging() -> None:
     """Configure centralised logging with file and stream handlers.
@@ -14,8 +12,8 @@ def setup_logging() -> None:
         LOG_LEVEL: Logging level (default: INFO)
         LOG_FILE: Path to log file (default: app.log)
     """
-    log_level = LOG_LEVEL
-    log_file = LOG_FILE
+    log_level = os.getenv("LOG_LEVEL", "INFO").upper()
+    log_file = os.getenv("LOG_FILE", "app.log")
 
     log_dir = os.path.dirname(log_file)
     if log_dir:

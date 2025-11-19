@@ -4,13 +4,13 @@ from pathlib import Path
 
 import yaml
 
-from src.logic.filters import Filter
-from src.providers.football_data import FDClient
+from backend import FootballDataRepository
+from logic.fixtures.filters import Filter
 
 team = "Manchester United FC"
 
-client = FDClient()
-fixtures = client.fetch_fixtures(team, ["PL"], season=None)
+repo = FootballDataRepository()
+fixtures = repo.fetch_fixtures(team, ["PL"], season=None)
 fixtures = Filter.apply_filters(fixtures, scheduled_only=True)
 
 output = {}

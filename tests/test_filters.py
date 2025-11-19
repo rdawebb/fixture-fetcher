@@ -4,8 +4,8 @@ from datetime import datetime, timezone
 
 import pytest
 
-from src.logic.filters import Filter
-from src.utils.errors import DataProcessingError, InvalidInputError
+from logic.fixtures.filters import Filter
+from utils.errors import DataProcessingError, InvalidInputError
 
 
 class TestFilter:

@@ -1,4 +1,4 @@
-"""Client for Football Data API v4."""
+"""Client for Football Data API."""
 
 from __future__ import annotations
 
@@ -10,8 +10,8 @@ from typing import Optional, cast
 import requests
 import yaml
 
-from src.config import CACHE_PATH, FOOTBALL_DATA_API, FOOTBALL_DATA_API_TOKEN
-from src.models import Fixture
+from src.backend.config import CACHE_PATH, FOOTBALL_DATA_API, FOOTBALL_DATA_API_TOKEN
+from src.logic.fixtures.models import Fixture
 from src.utils.errors import (
     AuthenticationError,
     ConnectionError,
@@ -46,7 +46,7 @@ HTTP_ERROR_MAP: dict[int, tuple] = {
 
 class FDClient:
     """
-    Client for interacting with the Football Data API.
+    Low-level client for interacting with the Football Data API.
 
     Attributes:
         session: Requests session with authentication headers.
@@ -347,3 +347,37 @@ class FDClient:
         logger.info(f"Fetched {len(fixtures)} fixtures for team '{team_name}'")
         print(f"📅 Fetched {len(fixtures)} fixtures for {team_name}")
         return fixtures
+
+
+class FootballDataRepository:
+    """Repository implementation using Football Data API."""
+
+    def __init__(self, client: Optional[FDClient] = None) -> None:
+        """Initialise the repository with an FDClient instance.
+
+        Args:
+            client: An optional FDClient instance. If not provided, a new one is created.
+        """
+        self.client = client or FDClient()
+
+    def fetch_fixtures(
+        self,
+        team_name: str,
+        competitions: Optional[list[str]] = None,
+        season: Optional[int] = None,
+    ) -> list[Fixture]:
+        """Fetch fixtures for a given team.
+
+        Args:
+            team_name: The name of the team to fetch fixtures for.
+            competitions: An optional list of competition codes to filter fixtures.
+            season: An optional season year to filter fixtures.
+
+        Returns:
+            A list of Fixture objects matching the criteria.
+        """
+        return self.client.fetch_fixtures(
+            team_name,
+            competitions,
+            season,
+        )

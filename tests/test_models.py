@@ -2,7 +2,7 @@
 
 from datetime import datetime, timezone
 
-from src.models import Fixture
+from logic.fixtures.models import Fixture
 
 
 class TestFixture:

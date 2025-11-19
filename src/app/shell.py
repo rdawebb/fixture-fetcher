@@ -8,7 +8,7 @@ from rich.align import Align
 from rich.console import Console
 from rich.panel import Panel
 
-from src.cli import build
+from .cli import build
 
 console = Console()
 

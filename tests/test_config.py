@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import pytest
 
-from src.config import validate_config
+from backend.config import validate_config
 from src.utils.errors import ConfigurationError
 
 
@@ -13,14 +13,14 @@ class TestConfig:
 
     def test_validate_config_success(self):
         """Test that validate_config passes with valid config."""
-        with patch("src.config.FOOTBALL_DATA_API_TOKEN", "test_token"), patch(
-            "src.config.LOG_LEVEL", "INFO"
+        with patch("backend.config.FOOTBALL_DATA_API_TOKEN", "test_token"), patch(
+            "backend.config.LOG_LEVEL", "INFO"
         ):
             validate_config()
 
     def test_validate_config_missing_token(self):
         """Test that validate_config fails without API token."""
-        with patch("src.config.FOOTBALL_DATA_API_TOKEN", ""):
+        with patch("backend.config.FOOTBALL_DATA_API_TOKEN", ""):
             with pytest.raises(ConfigurationError) as exc_info:
                 validate_config()
 
@@ -28,8 +28,8 @@ class TestConfig:
 
     def test_validate_config_invalid_log_level(self):
         """Test that validate_config fails with invalid log level."""
-        with patch("src.config.FOOTBALL_DATA_API_TOKEN", "test_token"), patch(
-            "src.config.LOG_LEVEL", "INVALID"
+        with patch("backend.config.FOOTBALL_DATA_API_TOKEN", "test_token"), patch(
+            "backend.config.LOG_LEVEL", "INVALID"
         ):
             with pytest.raises(ConfigurationError) as exc_info:
                 validate_config()
@@ -41,8 +41,8 @@ class TestConfig:
         valid_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
 
         for level in valid_levels:
-            with patch("src.config.FOOTBALL_DATA_API_TOKEN", "test_token"), patch(
-                "src.config.LOG_LEVEL", level
+            with patch("backend.config.FOOTBALL_DATA_API_TOKEN", "test_token"), patch(
+                "backend.config.LOG_LEVEL", level
             ):
                 # Should not raise
                 validate_config()

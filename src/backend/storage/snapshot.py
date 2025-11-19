@@ -8,8 +8,8 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Dict, List, Tuple, cast
 
-from src.models import Fixture
-from src.utils.errors import DataProcessingError
+from logic.fixtures.models import Fixture
+from utils import DataProcessingError
 
 logger = logging.getLogger(__name__)
 
@@ -38,9 +38,9 @@ def _dict_to_key_fields(d: dict) -> Tuple[str, str, str]:
         Tuple[str, str, str]: A tuple of (kickoff, venue, status).
     """
     return (
-        d.get("utc_kickoff", ""),
-        d.get("venue", ""),
-        d.get("status", ""),
+        d.get("utc_kickoff", "") or "",
+        d.get("venue") or "",
+        d.get("status", "") or "",
     )
 
 

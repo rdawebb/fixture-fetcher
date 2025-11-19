@@ -6,7 +6,7 @@ from typing import List
 
 import pytest
 
-from src.models import Fixture
+from logic.fixtures.models import Fixture
 
 
 @pytest.fixture

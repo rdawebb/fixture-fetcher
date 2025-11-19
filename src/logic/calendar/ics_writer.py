@@ -8,8 +8,8 @@ from typing import Iterable
 from icalendar import Calendar, Event
 from zoneinfo import ZoneInfo
 
-from src.models import Fixture
-from src.utils.errors import ICSWriteError
+from logic.fixtures.models import Fixture
+from utils.errors import ICSWriteError
 
 LONDON_TZ = ZoneInfo("Europe/London")
 

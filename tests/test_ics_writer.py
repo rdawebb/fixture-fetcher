@@ -2,8 +2,8 @@
 
 from icalendar import Calendar
 
-from src.models import Fixture
-from src.output.ics_writer import ICSWriter
+from logic.calendar.ics_writer import ICSWriter
+from logic.fixtures.models import Fixture
 
 
 class TestICSWriter:

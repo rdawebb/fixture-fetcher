@@ -38,7 +38,7 @@ test-cov:
 	pytest tests/ --cov=src --cov-report=html --cov-report=term
 
 run:
-	uv run python3 -m src.shell
+	uv run python3 -m src.app.shell
 
 overrides:
 	python3 -m scripts.make_overrides_template

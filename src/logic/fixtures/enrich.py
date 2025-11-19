@@ -6,7 +6,7 @@ from typing import List, Optional
 
 import yaml
 
-from src.models import Fixture
+from logic.fixtures.models import Fixture
 
 logger = logging.getLogger(__name__)
 

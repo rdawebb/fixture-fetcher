@@ -5,7 +5,7 @@ from unittest.mock import Mock, patch
 import pytest
 import yaml
 
-from src.providers.football_data import COMP_CODES, FDClient
+from backend.api.football_data import COMP_CODES, FDClient
 from src.utils.errors import (
     AuthenticationError,
     NotFoundError,
@@ -15,19 +15,19 @@ from src.utils.errors import (
 )
 
 
-class TestFDClientInitialization:
-    """Tests for FDClient initialization."""
+class TestFDClientInitialisation:
+    """Tests for FDClient initialisation."""
 
-    @patch("src.providers.football_data.FOOTBALL_DATA_API_TOKEN", "test_token")
-    def test_client_initialization_success(self):
-        """Test successful client initialization."""
+    @patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token")
+    def test_client_initialisation_success(self):
+        """Test successful client initialisation."""
         client = FDClient()
         assert client.token == {"X-Auth-Token": "test_token"}
         assert client.session is not None
 
-    @patch("src.providers.football_data.FOOTBALL_DATA_API_TOKEN", None)
-    def test_client_initialization_no_token(self):
-        """Test that initialization fails without token."""
+    @patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", None)
+    def test_client_initialisation_no_token(self):
+        """Test that initialisation fails without token."""
         with pytest.raises(AuthenticationError):
             FDClient()
 
@@ -35,32 +35,32 @@ class TestFDClientInitialization:
 class TestFDClientCache:
     """Tests for FDClient cache operations."""
 
-    @patch("src.providers.football_data.FOOTBALL_DATA_API_TOKEN", "test_token")
+    @patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token")
     def test_load_cache_success(self, tmp_path):
         """Test loading cache from file."""
         cache_file = tmp_path / "teams.yaml"
         cache_data = {"Manchester United": 66, "Liverpool": 64}
         cache_file.write_text(yaml.safe_dump(cache_data))
 
-        with patch("src.providers.football_data.CACHE_PATH", cache_file):
+        with patch("backend.api.football_data.CACHE_PATH", cache_file):
             client = FDClient()
             assert client.cache == cache_data
 
-    @patch("src.providers.football_data.FOOTBALL_DATA_API_TOKEN", "test_token")
+    @patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token")
     def test_load_cache_file_not_exists(self, tmp_path):
         """Test loading cache when file doesn't exist."""
         cache_file = tmp_path / "nonexistent.yaml"
 
-        with patch("src.providers.football_data.CACHE_PATH", cache_file):
+        with patch("backend.api.football_data.CACHE_PATH", cache_file):
             client = FDClient()
             assert client.cache == {}
 
-    @patch("src.providers.football_data.FOOTBALL_DATA_API_TOKEN", "test_token")
+    @patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token")
     def test_save_cache(self, tmp_path):
         """Test saving cache to file."""
         cache_file = tmp_path / "teams.yaml"
 
-        with patch("src.providers.football_data.CACHE_PATH", cache_file):
+        with patch("backend.api.football_data.CACHE_PATH", cache_file):
             client = FDClient()
             client.cache = {"Team A": 1, "Team B": 2}
             client._save_cache()
@@ -69,12 +69,12 @@ class TestFDClientCache:
             loaded_data = yaml.safe_load(cache_file.read_text())
             assert loaded_data == {"Team A": 1, "Team B": 2}
 
-    @patch("src.providers.football_data.FOOTBALL_DATA_API_TOKEN", "test_token")
+    @patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token")
     def test_add_to_cache(self, tmp_path):
         """Test adding team to cache."""
         cache_file = tmp_path / "teams.yaml"
 
-        with patch("src.providers.football_data.CACHE_PATH", cache_file):
+        with patch("backend.api.football_data.CACHE_PATH", cache_file):
             client = FDClient()
             client._add_to_cache("Chelsea", 61)
 
@@ -85,7 +85,7 @@ class TestFDClientCache:
 class TestFDClientHandleResponse:
     """Tests for FDClient response handling."""
 
-    @patch("src.providers.football_data.FOOTBALL_DATA_API_TOKEN", "test_token")
+    @patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token")
     def test_handle_response_success(self):
         """Test handling successful response."""
         client = FDClient()
@@ -96,7 +96,7 @@ class TestFDClientHandleResponse:
         result = client._handle_response(mock_response, "test context")
         assert result == {"data": "value"}
 
-    @patch("src.providers.football_data.FOOTBALL_DATA_API_TOKEN", "test_token")
+    @patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token")
     def test_handle_response_404(self):
         """Test handling 404 response."""
         client = FDClient()
@@ -106,7 +106,7 @@ class TestFDClientHandleResponse:
         with pytest.raises(NotFoundError):
             client._handle_response(mock_response, "test context")
 
-    @patch("src.providers.football_data.FOOTBALL_DATA_API_TOKEN", "test_token")
+    @patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token")
     def test_handle_response_429(self):
         """Test handling rate limit response."""
         client = FDClient()
@@ -116,7 +116,7 @@ class TestFDClientHandleResponse:
         with pytest.raises(RateLimitError):
             client._handle_response(mock_response, "test context")
 
-    @patch("src.providers.football_data.FOOTBALL_DATA_API_TOKEN", "test_token")
+    @patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token")
     def test_handle_response_500(self):
         """Test handling server error response."""
         client = FDClient()
@@ -126,7 +126,7 @@ class TestFDClientHandleResponse:
         with pytest.raises(ServerError):
             client._handle_response(mock_response, "test context")
 
-    @patch("src.providers.football_data.FOOTBALL_DATA_API_TOKEN", "test_token")
+    @patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token")
     def test_handle_response_invalid_json(self):
         """Test handling response with invalid JSON."""
         client = FDClient()
@@ -137,7 +137,7 @@ class TestFDClientHandleResponse:
         with pytest.raises(ParsingError):
             client._handle_response(mock_response, "test context")
 
-    @patch("src.providers.football_data.FOOTBALL_DATA_API_TOKEN", "test_token")
+    @patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token")
     def test_handle_response_non_dict_json(self):
         """Test handling response with non-dict JSON."""
         client = FDClient()
@@ -152,12 +152,12 @@ class TestFDClientHandleResponse:
 class TestFDClientRefreshCache:
     """Tests for FDClient cache refresh."""
 
-    @patch("src.providers.football_data.FOOTBALL_DATA_API_TOKEN", "test_token")
+    @patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token")
     def test_refresh_team_cache_success(self, tmp_path):
         """Test successful team cache refresh."""
         cache_file = tmp_path / "teams.yaml"
 
-        with patch("src.providers.football_data.CACHE_PATH", cache_file):
+        with patch("backend.api.football_data.CACHE_PATH", cache_file):
             client = FDClient()
 
             mock_response = Mock()
@@ -176,12 +176,12 @@ class TestFDClientRefreshCache:
             assert client.cache["Team A"] == 1
             assert cache_file.exists()
 
-    @patch("src.providers.football_data.FOOTBALL_DATA_API_TOKEN", "test_token")
+    @patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token")
     def test_refresh_team_cache_all_competitions(self, tmp_path):
         """Test refreshing cache for all competitions."""
         cache_file = tmp_path / "teams.yaml"
 
-        with patch("src.providers.football_data.CACHE_PATH", cache_file):
+        with patch("backend.api.football_data.CACHE_PATH", cache_file):
             client = FDClient()
 
             mock_response = Mock()
