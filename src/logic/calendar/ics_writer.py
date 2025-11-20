@@ -56,16 +56,16 @@ class ICSWriter:
                 ev.add("dtend", start + timedelta(hours=2))
                 ev.add("summary", title)
 
-                parts = [fixture.competition]
+                parts = [fixture.competition_code]
 
                 if fixture.tv is not None:
-                    parts.append(f"TV: {fixture.tv}")
+                    parts.append(f"{fixture.tv}")
 
                 if fixture.matchday:
                     parts.append(f"Matchday {fixture.matchday}")
 
                 if fixture.venue:
-                    parts.append(f"Venue: {fixture.venue}")
+                    parts.append(f"{fixture.venue}")
                     ev.add("location", fixture.venue)
 
                 ev.add("description", " | ".join(parts))
