@@ -6,188 +6,188 @@ SUMMARY:Man United vs Everton
 DTSTART;TZID=Europe/London:20251124T200000
 DTEND;TZID=Europe/London:20251124T220000
 UID:537902@fixture-fetcher
-DESCRIPTION:Premier League | TV: Sky Sports | Matchday 12
+DESCRIPTION:PL | Sky Sports | Matchday 12
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Crystal Palace vs Man United
 DTSTART;TZID=Europe/London:20251130T120000
 DTEND;TZID=Europe/London:20251130T140000
 UID:537907@fixture-fetcher
-DESCRIPTION:Premier League | TV: TNT Sports | Matchday 13
+DESCRIPTION:PL | TNT Sports | Matchday 13
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Man United vs West Ham
 DTSTART;TZID=Europe/London:20251204T200000
 DTEND;TZID=Europe/London:20251204T220000
 UID:537922@fixture-fetcher
-DESCRIPTION:Premier League | TV: Sky Sports | Matchday 14
+DESCRIPTION:PL | Sky Sports | Matchday 14
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Wolverhampton vs Man United
 DTSTART;TZID=Europe/London:20251208T200000
 DTEND;TZID=Europe/London:20251208T220000
 UID:537934@fixture-fetcher
-DESCRIPTION:Premier League | TV: Sky Sports | Matchday 15
+DESCRIPTION:PL | Sky Sports | Matchday 15
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Man United vs Bournemouth
 DTSTART;TZID=Europe/London:20251215T200000
 DTEND;TZID=Europe/London:20251215T220000
 UID:537942@fixture-fetcher
-DESCRIPTION:Premier League | TV: Sky Sports | Matchday 16
+DESCRIPTION:PL | Sky Sports | Matchday 16
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Aston Villa vs Man United
 DTSTART;TZID=Europe/London:20251221T163000
 DTEND;TZID=Europe/London:20251221T183000
 UID:537946@fixture-fetcher
-DESCRIPTION:Premier League | TV: Sky Sports | Matchday 17
+DESCRIPTION:PL | Sky Sports | Matchday 17
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Man United vs Newcastle
 DTSTART;TZID=Europe/London:20251226T200000
 DTEND;TZID=Europe/London:20251226T220000
 UID:537962@fixture-fetcher
-DESCRIPTION:Premier League | TV: Sky Sports | Matchday 18
+DESCRIPTION:PL | Sky Sports | Matchday 18
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Man United vs Wolverhampton
 DTSTART;TZID=Europe/London:20251230T201500
 DTEND;TZID=Europe/London:20251230T221500
 UID:537972@fixture-fetcher
-DESCRIPTION:Premier League | TV: Sky Sports | Matchday 19
+DESCRIPTION:PL | Sky Sports | Matchday 19
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Leeds United vs Man United
 DTSTART;TZID=Europe/London:20260104T123000
 DTEND;TZID=Europe/London:20260104T143000
 UID:537980@fixture-fetcher
-DESCRIPTION:Premier League | TV: TNT Sports | Matchday 20
+DESCRIPTION:PL | TNT Sports | Matchday 20
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Burnley vs Man United
 DTSTART;TZID=Europe/London:20260107T201500
 DTEND;TZID=Europe/London:20260107T221500
 UID:537989@fixture-fetcher
-DESCRIPTION:Premier League | TV: Sky Sports | Matchday 21
+DESCRIPTION:PL | Sky Sports | Matchday 21
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Man United vs Man City
 DTSTART;TZID=Europe/London:20260117T000000
 DTEND;TZID=Europe/London:20260117T020000
 UID:538001@fixture-fetcher
-DESCRIPTION:Premier League | Matchday 22
+DESCRIPTION:PL | Matchday 22
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Arsenal vs Man United
 DTSTART;TZID=Europe/London:20260124T000000
 DTEND;TZID=Europe/London:20260124T020000
 UID:538007@fixture-fetcher
-DESCRIPTION:Premier League | Matchday 23
+DESCRIPTION:PL | Matchday 23
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Man United vs Fulham
 DTSTART;TZID=Europe/London:20260131T000000
 DTEND;TZID=Europe/London:20260131T020000
 UID:538021@fixture-fetcher
-DESCRIPTION:Premier League | Matchday 24
+DESCRIPTION:PL | Matchday 24
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Man United vs Tottenham
 DTSTART;TZID=Europe/London:20260207T000000
 DTEND;TZID=Europe/London:20260207T020000
 UID:538032@fixture-fetcher
-DESCRIPTION:Premier League | Matchday 25
+DESCRIPTION:PL | Matchday 25
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:West Ham vs Man United
 DTSTART;TZID=Europe/London:20260211T000000
 DTEND;TZID=Europe/London:20260211T020000
 UID:538044@fixture-fetcher
-DESCRIPTION:Premier League | Matchday 26
+DESCRIPTION:PL | Matchday 26
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Everton vs Man United
 DTSTART;TZID=Europe/London:20260221T000000
 DTEND;TZID=Europe/London:20260221T020000
 UID:538050@fixture-fetcher
-DESCRIPTION:Premier League | Matchday 27
+DESCRIPTION:PL | Matchday 27
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Man United vs Crystal Palace
 DTSTART;TZID=Europe/London:20260228T000000
 DTEND;TZID=Europe/London:20260228T020000
 UID:538062@fixture-fetcher
-DESCRIPTION:Premier League | Matchday 28
+DESCRIPTION:PL | Matchday 28
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Newcastle vs Man United
 DTSTART;TZID=Europe/London:20260304T000000
 DTEND;TZID=Europe/London:20260304T020000
 UID:538072@fixture-fetcher
-DESCRIPTION:Premier League | Matchday 29
+DESCRIPTION:PL | Matchday 29
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Man United vs Aston Villa
 DTSTART;TZID=Europe/London:20260314T000000
 DTEND;TZID=Europe/London:20260314T020000
 UID:538082@fixture-fetcher
-DESCRIPTION:Premier League | Matchday 30
+DESCRIPTION:PL | Matchday 30
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Bournemouth vs Man United
 DTSTART;TZID=Europe/London:20260321T000000
 DTEND;TZID=Europe/London:20260321T020000
 UID:538085@fixture-fetcher
-DESCRIPTION:Premier League | Matchday 31
+DESCRIPTION:PL | Matchday 31
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Man United vs Leeds United
 DTSTART;TZID=Europe/London:20260411T010000
 DTEND;TZID=Europe/London:20260411T030000
 UID:538102@fixture-fetcher
-DESCRIPTION:Premier League | Matchday 32
+DESCRIPTION:PL | Matchday 32
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Chelsea vs Man United
 DTSTART;TZID=Europe/London:20260418T010000
 DTEND;TZID=Europe/London:20260418T030000
 UID:538108@fixture-fetcher
-DESCRIPTION:Premier League | Matchday 33
+DESCRIPTION:PL | Matchday 33
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Man United vs Brentford
 DTSTART;TZID=Europe/London:20260425T010000
 DTEND;TZID=Europe/London:20260425T030000
 UID:538122@fixture-fetcher
-DESCRIPTION:Premier League | Matchday 34
+DESCRIPTION:PL | Matchday 34
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Man United vs Liverpool
 DTSTART;TZID=Europe/London:20260502T010000
 DTEND;TZID=Europe/London:20260502T030000
 UID:538132@fixture-fetcher
-DESCRIPTION:Premier League | Matchday 35
+DESCRIPTION:PL | Matchday 35
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Sunderland vs Man United
 DTSTART;TZID=Europe/London:20260509T010000
 DTEND;TZID=Europe/London:20260509T030000
 UID:538135@fixture-fetcher
-DESCRIPTION:Premier League | Matchday 36
+DESCRIPTION:PL | Matchday 36
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Man United vs Nottingham
 DTSTART;TZID=Europe/London:20260517T010000
 DTEND;TZID=Europe/London:20260517T030000
 UID:538152@fixture-fetcher
-DESCRIPTION:Premier League | Matchday 37
+DESCRIPTION:PL | Matchday 37
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Brighton Hove vs Man United
 DTSTART;TZID=Europe/London:20260524T010000
 DTEND;TZID=Europe/London:20260524T030000
 UID:538156@fixture-fetcher
-DESCRIPTION:Premier League | Matchday 38
+DESCRIPTION:PL | Matchday 38
 END:VEVENT
 END:VCALENDAR

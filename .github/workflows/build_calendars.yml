@@ -24,6 +24,11 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Fetch previously deployed calendar
+        run: |
+          mkdir -p public-old
+          git clone --depth 1 --branch gh-pages https://github.com/${{ github.repository }}.git public-old || true
+
       - name: Generate ICS calendars
         env:
           FOOTBALL_DATA_API_TOKEN: ${{ secrets.FOOTBALL_DATA_API_TOKEN }}
@@ -31,7 +36,20 @@ jobs:
           mkdir -p public
           python scripts/build.py
 
+      - name: Check for calendar changes
+        id: changes
+        run: |
+          old_hash=$(find public-old -name '*.ics' -type f | sort | xargs cat | md5sum | awk '{ print $1 }'
+          new_hash=$(find public -name '*.ics' -type f | sort | xargs cat | md5sum | awk '{ print $1 }')
+
+          if [ "$old_hash" = "$new_hash" ]; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
+
       - name: Deploy to GitHub Pages
+        if: steps.changes.outputs.has_changes == 'true'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}

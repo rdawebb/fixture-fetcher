@@ -2,7 +2,7 @@
 
 import yaml
 
-from logic.fixtures.enrich import apply_overrides, enrich_all
+from src.logic.fixtures.enrich import apply_overrides, enrich_all
 
 
 class TestApplyOverrides:

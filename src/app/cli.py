@@ -4,9 +4,9 @@ import logging
 from pathlib import Path
 from typing import Optional
 
-from backend import LOG_FILE, LOG_LEVEL, FootballDataRepository
-from backend.storage.snapshot import diff_changes, load_snapshot, save_snapshot
-from logic import Filter, ICSWriter, enrich_all
+from src.backend import LOG_FILE, LOG_LEVEL, FootballDataRepository
+from src.backend.storage.snapshot import diff_changes, load_snapshot, save_snapshot
+from src.logic import Filter, ICSWriter, enrich_all
 
 # Configure logging
 logging.basicConfig(
@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 def _slug(s: str) -> str:
     """Convert a club name to a slug format."""
     return "".join(c.lower() if c.isalnum() else "-" for c in s).strip("-")
+
 
 def build(
     team: Optional[str] = None,
@@ -64,6 +65,7 @@ def build(
 
     if not team:
         logger.error("Team must be specified.")
+        return
     teams = [team]
 
     for t in teams:

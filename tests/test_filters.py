@@ -4,8 +4,9 @@ from datetime import datetime, timezone
 
 import pytest
 
-from logic.fixtures.filters import Filter
-from utils.errors import DataProcessingError, InvalidInputError
+from src.logic.fixtures.filters import Filter
+from src.logic.fixtures.models import Fixture
+from src.utils.errors import DataProcessingError, InvalidInputError
 
 
 class TestFilter:
@@ -85,3 +86,80 @@ class TestFilter:
         bad_fixtures = [{"not": "a fixture"}]
         with pytest.raises(DataProcessingError):
             Filter.only_home(bad_fixtures)  # type: ignore
+
+    def test_apply_filters_all_options(self, sample_fixtures):
+        """Test applying all filter options at once."""
+        result = Filter.apply_filters(
+            sample_fixtures,
+            scheduled_only=True,
+            home_only=True,
+            televised_only=True,
+        )
+        # Only fixture 1 matches: home, scheduled, televised
+        assert len(result) == 1
+        assert result[0].id == "1"
+
+    def test_by_date_range_no_kickoff(self):
+        """Test filtering by date range excludes fixtures without kickoff."""
+        fixture = Fixture(
+            id="1",
+            competition="FA Cup",
+            competition_code="FA",
+            matchday=None,
+            utc_kickoff=None,
+            home_team="Team A",
+            away_team="Team B",
+            venue=None,
+            status="SCHEDULED",
+            tv=None,
+            is_home=True,
+        )
+        start_date = datetime(2025, 11, 1, 0, 0, 0, tzinfo=timezone.utc)
+        end_date = datetime(2025, 11, 30, 23, 59, 59, tzinfo=timezone.utc)
+
+        result = Filter.by_date_range([fixture], start_date, end_date)
+
+        assert len(result) == 0
+
+    def test_only_televised_with_none_tv(self):
+        """Test televised filter excludes fixtures with no TV."""
+        fixture = Fixture(
+            id="1",
+            competition="FA Cup",
+            competition_code="FA",
+            matchday=None,
+            utc_kickoff=None,
+            home_team="Team A",
+            away_team="Team B",
+            venue=None,
+            status="SCHEDULED",
+            tv=None,
+            is_home=True,
+        )
+
+        result = Filter.only_televised([fixture])
+
+        assert len(result) == 0
+
+    def test_by_date_range_boundary_dates(self, sample_fixtures):
+        """Test filtering by exact boundary dates."""
+        # Fixture 2 is at 2025-11-12T20:00:00Z
+        start_date = datetime(2025, 11, 12, 20, 0, 0, tzinfo=timezone.utc)
+        end_date = datetime(2025, 11, 12, 20, 0, 0, tzinfo=timezone.utc)
+
+        result = Filter.by_date_range(sample_fixtures, start_date, end_date)
+
+        assert len(result) == 1
+        assert result[0].id == "2"
+
+    def test_apply_filters_with_competition(self, sample_fixtures):
+        """Test that apply_filters can be extended with competition filter."""
+        # This tests the current limitation that apply_filters doesn't support competition
+        # but we can see if we want to add it
+        result = Filter.apply_filters(sample_fixtures, scheduled_only=True)
+
+        # Should still include all scheduled competitions
+        assert len(result) == 3
+        assert any(f.competition_code == "PL" for f in result)
+        assert any(f.competition_code == "CL" for f in result)
+        assert any(f.competition_code == "FA" for f in result)

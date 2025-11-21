@@ -2,8 +2,8 @@
 
 from icalendar import Calendar
 
-from logic.calendar.ics_writer import ICSWriter
-from logic.fixtures.models import Fixture
+from src.logic.calendar.ics_writer import ICSWriter
+from src.logic.fixtures.models import Fixture
 
 
 class TestICSWriter:
@@ -13,7 +13,6 @@ class TestICSWriter:
         """Test ICSWriter initialization."""
         writer = ICSWriter(sample_fixtures)
         assert writer.fixtures == sample_fixtures
-        assert writer.calendar is not None
 
     def test_write_ics_file(self, sample_fixtures, tmp_path):
         """Test writing fixtures to ICS file."""
@@ -37,7 +36,7 @@ class TestICSWriter:
         assert "BEGIN:VCALENDAR" in content
         assert "END:VCALENDAR" in content
         assert "Manchester United vs Liverpool" in content
-        assert "Premier League" in content
+        assert "PL" in content
         assert "Old Trafford" in content
 
     def test_ics_file_parsing(self, sample_fixtures, tmp_path):
@@ -74,8 +73,8 @@ class TestICSWriter:
         writer.write(output_path)
 
         content = output_path.read_text()
-        assert "Team A vs Team B (KO TBD)" in content
-        assert "Kick-off time TBC" in content
+        assert "Team A vs Team B (TBC)" in content
+        assert "Kickoff TBC" in content
 
     def test_write_creates_parent_directories(self, tmp_path):
         """Test that write creates parent directories if they don't exist."""
@@ -99,8 +98,10 @@ class TestICSWriter:
 
     def test_uid_generation(self, sample_fixture):
         """Test UID generation for events."""
-        writer = ICSWriter([sample_fixture])
-        uid = writer._uid(sample_fixture)
+        from src.logic.calendar.formatter import EventFormatter
+
+        formatter = EventFormatter()
+        uid = formatter._uid(sample_fixture)
 
         assert uid == "12345@fixture-fetcher"
         assert "@" in uid
