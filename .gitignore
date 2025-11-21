@@ -26,5 +26,5 @@ coverage.xml
 fixture_fetcher.egg-info/
 
 # Runtime data (generated, not source)
-data/
+data/cache/
 app.log
