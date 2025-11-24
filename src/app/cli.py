@@ -85,11 +85,20 @@ def build(
             if televised_only:
                 fixtures = Filter.only_televised(fixtures)
 
-            comp_slug = _slug(competitions) if competitions else "all"
-            fname = f"{_slug(t)}.{comp_slug}.ics"
+            if fixtures:
+                comp_name = fixtures[0].competition
+                comp_slug = _slug(comp_name)
+            else:
+                comp_slug = _slug(competitions) if competitions else "all"
+
+            team_slug = _slug(t)
+            team_output_dir = output / team_slug / comp_slug
+            team_output_dir.mkdir(parents=True, exist_ok=True)
+
+            fname = f"{team_slug}.{comp_slug}.ics"
             writer = ICSWriter(fixtures)
-            writer.write(output / fname)
-            logger.info(f"Wrote {len(fixtures)} fixtures for team '{t}' to {output / fname}")
+            writer.write(team_output_dir / fname)
+            logger.info(f"Wrote {len(fixtures)} fixtures for team '{t}' to {team_output_dir / fname}")
 
             if summarise:
                 changes = diff_changes(fixtures, prev)

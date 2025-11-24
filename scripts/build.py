@@ -8,5 +8,5 @@ if __name__ == "__main__":
     build(
         team="Manchester United FC",
         competitions="PL",
-        output=Path("public"),
+        output=Path("public/calendars"),
     )
