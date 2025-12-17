@@ -23,8 +23,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt
-          pip install -e .
+          pip install .[dev]
 
       - name: Fetch previously deployed calendar
         run: |
@@ -38,6 +37,9 @@ jobs:
         run: |
           mkdir -p public
           python scripts/build.py
+
+      - name: Copy static files
+        run: cp -r static/* public/
 
       - name: Check for calendar changes
         id: changes
