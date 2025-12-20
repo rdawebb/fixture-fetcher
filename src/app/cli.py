@@ -36,6 +36,7 @@ def build(
     output: Path = Path("public"),
     tv_from: str = "auto",
     overrides: Optional[Path] = Path("data/overrides/tv_overrides.yaml"),
+    cache_dir: Path = Path("data/cache"),
     refresh_cache: bool = False,
     refresh_competitions: bool = False,
     summarise: bool = True,
@@ -73,7 +74,7 @@ def build(
             fixtures = repo.fetch_fixtures(t, comps, season)
             fixtures = Filter.apply_filters(fixtures, scheduled_only=True)
 
-            snap_path = Path("data/cache") / f"{_slug(t)}.{_slug(competitions or 'all')}.json"
+            snap_path = cache_dir / f"{_slug(t)}.{_slug(competitions or 'all')}.json"
             prev = load_snapshot(snap_path)
 
             stats = enrich_all(fixtures, overrides_path=overrides)
@@ -98,7 +99,9 @@ def build(
             fname = f"{team_slug}.{comp_slug}.ics"
             writer = ICSWriter(fixtures)
             writer.write(team_output_dir / fname)
-            logger.info(f"Wrote {len(fixtures)} fixtures for team '{t}' to {team_output_dir / fname}")
+            logger.info(
+                f"Wrote {len(fixtures)} fixtures for team '{t}' to {team_output_dir / fname}"
+            )
 
             if summarise:
                 changes = diff_changes(fixtures, prev)

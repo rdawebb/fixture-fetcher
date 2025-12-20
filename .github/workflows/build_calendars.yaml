@@ -16,6 +16,14 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: Restore cache
+        uses: actions/cache@v4
+        with:
+          path: data/cache
+          key: team-cache-${{ runner.os }}
+          restore-keys: |
+            team-cache-${{ runner.os }}-
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -43,15 +51,16 @@ jobs:
 
       - name: Check for calendar changes
         id: changes
+        env:
+          PYTHONPATH: ${{ github.workspace }}
         run: |
-          old_hash=$(find public-old -name '*.ics' -type f | sort | xargs cat | md5sum | awk '{ print $1 }')
-          new_hash=$(find public -name '*.ics' -type f | sort | xargs cat | md5sum | awk '{ print $1 }')
+          python scripts/compare_calendars.py
 
-          if [ "$old_hash" = "$new_hash" ]; then
-            echo "has_changes=false" >> $GITHUB_OUTPUT
-          else
-            echo "has_changes=true" >> $GITHUB_OUTPUT
-          fi
+      - name: Save cache
+        uses: actions/cache@v4
+        with:
+          path: data/cache
+          key: team-cache-${{ runner.os }}
 
       - name: Deploy to GitHub Pages
         if: steps.changes.outputs.has_changes == 'true'

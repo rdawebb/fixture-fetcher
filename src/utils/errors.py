@@ -151,6 +151,12 @@ class OperationError(ApplicationError):
     LOG_LEVEL = "error"
 
 
+class ICSReadError(ApplicationError):
+    """Raised when there is an error reading ICS files."""
+
+    LOG_LEVEL = "error"
+
+
 class ICSWriteError(ApplicationError):
     """Raised when there is an error writing ICS files."""
 

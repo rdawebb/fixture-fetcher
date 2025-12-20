@@ -66,7 +66,8 @@ class TestBuildFunction:
 
         # Run build function
         output_dir = tmp_path / "output"
-        build(team="Manchester United", output=output_dir)
+        cache_dir = tmp_path / "cache"
+        build(team="Manchester United", output=output_dir, cache_dir=cache_dir)
 
         # Verify repository was called correctly
         mock_repo.fetch_fixtures.assert_called_once()
@@ -76,7 +77,7 @@ class TestBuildFunction:
 
         # Verify output file was created
         assert output_dir.exists()
-        ics_files = list(output_dir.glob("*.ics"))
+        ics_files = list(output_dir.rglob("*.ics"))
         assert len(ics_files) > 0
 
     @patch("src.app.cli.FootballDataRepository")
@@ -86,7 +87,8 @@ class TestBuildFunction:
         mock_repo_class.return_value = mock_repo
 
         output_dir = tmp_path / "output"
-        build(output=output_dir)
+        cache_dir = tmp_path / "cache"
+        build(output=output_dir, cache_dir=cache_dir)
 
         # Repository should not be called when no team is specified
         mock_repo.fetch_fixtures.assert_not_called()
@@ -129,14 +131,16 @@ class TestBuildFunction:
         mock_repo.fetch_fixtures.return_value = fixtures
 
         output_dir = tmp_path / "output"
+        cache_dir = tmp_path / "cache"
         build(
             team="Manchester United",
             televised_only=True,
             output=output_dir,
+            cache_dir=cache_dir,
         )
 
         # Should filter to only televised fixtures (fixture 1)
-        ics_files = list(output_dir.glob("*.ics"))
+        ics_files = list(output_dir.rglob("*.ics"))
         assert len(ics_files) > 0
 
     @patch("src.app.cli.FootballDataRepository")
@@ -161,10 +165,12 @@ class TestBuildFunction:
         mock_repo.fetch_fixtures.return_value = [fixture]
 
         output_dir = tmp_path / "output"
+        cache_dir = tmp_path / "cache"
         build(
             team="Manchester United",
             competitions="PL,CL",
             output=output_dir,
+            cache_dir=cache_dir,
         )
 
         # Verify competitions were parsed and passed
@@ -180,10 +186,12 @@ class TestBuildFunction:
         mock_repo.fetch_fixtures.return_value = []
 
         output_dir = tmp_path / "output"
+        cache_dir = tmp_path / "cache"
         build(
             team="Manchester United",
             refresh_cache=True,
             output=output_dir,
+            cache_dir=cache_dir,
         )
 
         # Verify refresh_team_cache was called
@@ -197,9 +205,10 @@ class TestBuildFunction:
         mock_repo.fetch_fixtures.return_value = []
 
         output_dir = tmp_path / "nested" / "output"
+        cache_dir = tmp_path / "cache"
         assert not output_dir.exists()
 
-        build(team="Manchester United", output=output_dir)
+        build(team="Manchester United", output=output_dir, cache_dir=cache_dir)
 
         # Output directory should be created
         assert output_dir.exists()
@@ -212,9 +221,10 @@ class TestBuildFunction:
         mock_repo.fetch_fixtures.side_effect = Exception("API Error")
 
         output_dir = tmp_path / "output"
+        cache_dir = tmp_path / "cache"
 
         # Should not raise, but log error
-        build(team="Manchester United", output=output_dir)
+        build(team="Manchester United", output=output_dir, cache_dir=cache_dir)
 
     @patch("src.app.cli.FootballDataRepository")
     def test_build_no_summarise(self, mock_repo_class, tmp_path):
@@ -238,10 +248,12 @@ class TestBuildFunction:
         mock_repo.fetch_fixtures.return_value = [fixture]
 
         output_dir = tmp_path / "output"
+        cache_dir = tmp_path / "cache"
         build(
             team="Manchester United",
             summarise=False,
             output=output_dir,
+            cache_dir=cache_dir,
         )
 
         # Should complete without error
@@ -354,7 +366,7 @@ class TestCLIClass:
         cli.interactive_prompt()
 
         # Build should not be called
-        # (We'd need to patch build to verify, but it shouldn't be reached)
+        # (Need to patch build to verify, but it shouldn't be reached)
 
 
 class TestCLIEndToEnd:
@@ -388,16 +400,20 @@ class TestCLIEndToEnd:
 
         # Execute workflow
         output_dir = tmp_path / "public"
+        cache_dir = tmp_path / "cache"
+        cache_dir.mkdir()
+
         build(
             team="Manchester United",
             competitions="PL",
             home_only=True,
             output=output_dir,
+            cache_dir=cache_dir,
         )
 
         # Verify output
         assert output_dir.exists()
-        ics_files = list(output_dir.glob("*.ics"))
+        ics_files = list(output_dir.rglob("*.ics"))
         assert len(ics_files) > 0
 
         # Verify ICS file content
@@ -440,6 +456,7 @@ class TestCLIEndToEnd:
             build(
                 team="Manchester United",
                 output=output_dir,
+                cache_dir=cache_dir,
             )
 
             # First run creates snapshot
