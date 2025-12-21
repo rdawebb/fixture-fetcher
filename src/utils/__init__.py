@@ -6,6 +6,8 @@ from .errors import (
     ConfigurationError,
     ConnectionError,
     DataProcessingError,
+    ICSReadError,
+    ICSWriteError,
     InvalidInputError,
     RateLimitError,
     ServerError,
@@ -14,7 +16,6 @@ from .errors import (
     UnknownAPIError,
     ValidationError,
 )
-from .handler import handle_error
 from .logging import get_logger
 
 __all__ = [
@@ -23,6 +24,8 @@ __all__ = [
     "ConfigurationError",
     "ConnectionError",
     "DataProcessingError",
+    "ICSReadError",
+    "ICSWriteError",
     "InvalidInputError",
     "RateLimitError",
     "ServerError",
@@ -30,6 +33,5 @@ __all__ = [
     "TimeoutError",
     "UnknownAPIError",
     "ValidationError",
-    "handle_error",
     "get_logger",
 ]

@@ -7,8 +7,7 @@ from typing import Iterable
 
 from src.logic.calendar.builder import CalendarBuilder
 from src.logic.fixtures.models import Fixture
-from src.utils.errors import ICSWriteError
-from src.utils.logging import get_logger
+from src.utils import ICSWriteError, get_logger
 
 logger = get_logger(__name__)
 

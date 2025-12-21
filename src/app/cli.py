@@ -5,8 +5,10 @@ from typing import Optional
 
 from src.backend import FootballDataRepository
 from src.backend.storage.snapshot import diff_changes, load_snapshot, save_snapshot
-from src.logic import Filter, ICSWriter, enrich_all
-from src.utils.logging import get_logger
+from src.logic.calendar.ics_writer import ICSWriter
+from src.logic.fixtures.enrich import enrich_all
+from src.logic.fixtures.filters import Filter
+from src.utils import get_logger
 
 
 logger = get_logger(__name__)

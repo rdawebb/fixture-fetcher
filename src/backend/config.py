@@ -8,7 +8,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from src.utils.errors import ConfigurationError
+from src.utils import ConfigurationError
 
 load_dotenv(Path(__file__).parent.parent.parent / ".env")
 

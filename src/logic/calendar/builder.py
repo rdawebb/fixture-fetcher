@@ -8,7 +8,7 @@ from icalendar import Calendar
 
 from src.logic.calendar.formatter import EventFormatter
 from src.logic.fixtures.models import Fixture
-from src.utils.logging import get_logger
+from src.utils import get_logger
 
 logger = get_logger(__name__)
 
