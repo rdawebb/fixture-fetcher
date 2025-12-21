@@ -2,15 +2,15 @@
 
 from __future__ import annotations
 
-import logging
 from pathlib import Path
 from typing import Iterable
 
 from src.logic.calendar.builder import CalendarBuilder
 from src.logic.fixtures.models import Fixture
 from src.utils.errors import ICSWriteError
+from src.utils.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class ICSWriter:

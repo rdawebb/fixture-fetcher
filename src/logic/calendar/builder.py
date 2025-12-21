@@ -2,15 +2,15 @@
 
 from __future__ import annotations
 
-import logging
 from typing import Iterable
 
 from icalendar import Calendar
 
 from src.logic.calendar.formatter import EventFormatter
 from src.logic.fixtures.models import Fixture
+from src.utils.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class CalendarBuilder:
@@ -35,7 +35,9 @@ class CalendarBuilder:
         for fixture in fixtures:
             event = self.formatter.format_event(fixture)
             self.calendar.add_component(event)
-            logger.debug(f"Added fixture {fixture.home_team} vs {fixture.away_team} to calendar")
+            logger.debug(
+                f"Added fixture {fixture.home_team} vs {fixture.away_team} to calendar"
+            )
 
         return self
 

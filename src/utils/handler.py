@@ -1,10 +1,9 @@
 """Centralised error handling for the application."""
 
-import logging
-
 from src.utils.errors import APIError, ApplicationError, ConfigurationError
+from src.utils.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def handle_error(error: Exception) -> int:

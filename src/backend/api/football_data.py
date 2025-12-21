@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import datetime as dt
-import logging
 from pathlib import Path
 from typing import Optional, cast
 
@@ -23,8 +22,9 @@ from src.utils.errors import (
     TimeoutError,
     UnknownAPIError,
 )
+from src.utils.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 API = FOOTBALL_DATA_API
 
@@ -179,7 +179,9 @@ class FDClient:
         if status in HTTP_ERROR_MAP:
             exc_class, log_level = HTTP_ERROR_MAP[status]
             getattr(logger, log_level)(f"{exc_class.__name__}: {context}")
-            raise exc_class(str(exc_class.__doc__), status_code=status, response=response)
+            raise exc_class(
+                str(exc_class.__doc__), status_code=status, response=response
+            )
 
         if status >= 500:
             logger.error(f"ServerError: {context} (status: {status})")
@@ -195,7 +197,9 @@ class FDClient:
             return data
         except ValueError as e:
             logger.error(f"ParsingError: Failed to parse API response: {e}")
-            raise ParsingError(f"Failed to parse API response: {e}", response=response) from e
+            raise ParsingError(
+                f"Failed to parse API response: {e}", response=response
+            ) from e
 
     def get_team_id_by_name(self, team_name: str) -> int:
         """
@@ -274,9 +278,13 @@ class FDClient:
             params["season"] = season
 
         try:
-            logger.debug(f"Fetching matches for team ID {team_id} with params: {params}")
+            logger.debug(
+                f"Fetching matches for team ID {team_id} with params: {params}"
+            )
             print(f"📡 Fetching matches for {team_name} (ID {team_id})...")
-            response = self.session.get(f"{API}teams/{team_id}/matches", params=params, timeout=10)
+            response = self.session.get(
+                f"{API}teams/{team_id}/matches", params=params, timeout=10
+            )
             data = self._handle_response(response, f"matches for team ID {team_id}")
         except requests.exceptions.Timeout:
             logger.error(
@@ -297,7 +305,9 @@ class FDClient:
         fixtures: list[Fixture] = []
         allowed = set(competitions) if competitions else set(COMP_CODES.keys())
 
-        logger.debug(f"Processing {len(matches)} matches, filtering for competitions: {allowed}")
+        logger.debug(
+            f"Processing {len(matches)} matches, filtering for competitions: {allowed}"
+        )
 
         for m in matches:
             comp_name = m["competition"]["name"]
@@ -320,7 +330,9 @@ class FDClient:
                     else None
                 )
             except (ValueError, KeyError) as e:
-                logger.warning(f"Failed to parse kickoff time for match {match_id}: {e}")
+                logger.warning(
+                    f"Failed to parse kickoff time for match {match_id}: {e}"
+                )
                 utc_kickoff = None
 
             home_team = m["homeTeam"]["shortName"]

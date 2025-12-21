@@ -1,24 +1,15 @@
 from __future__ import annotations
 
-import logging
 from pathlib import Path
 from typing import Optional
 
-from src.backend import LOG_FILE, LOG_LEVEL, FootballDataRepository
+from src.backend import FootballDataRepository
 from src.backend.storage.snapshot import diff_changes, load_snapshot, save_snapshot
 from src.logic import Filter, ICSWriter, enrich_all
+from src.utils.logging import get_logger
 
-# Configure logging
-logging.basicConfig(
-    level=LOG_LEVEL,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.FileHandler(LOG_FILE),
-        logging.StreamHandler(),
-    ],
-)
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def _slug(s: str) -> str:
@@ -28,17 +19,17 @@ def _slug(s: str) -> str:
 
 def build(
     team: Optional[str] = None,
-    competitions: Optional[str] = None,
+    competitions: Optional[list[str]] = None,
     season: Optional[int] = None,
     home_only: bool = False,
     away_only: bool = False,
     televised_only: bool = False,
     output: Path = Path("public"),
-    tv_from: str = "auto",
+    tv_from: str = "auto",  # not used currently
     overrides: Optional[Path] = Path("data/overrides/tv_overrides.yaml"),
     cache_dir: Path = Path("data/cache"),
     refresh_cache: bool = False,
-    refresh_competitions: bool = False,
+    refresh_competitions: bool = False,  # not used currently
     summarise: bool = True,
 ) -> None:
     """Build ICS calendar files for football fixtures.
@@ -46,7 +37,7 @@ def build(
     Args:
         team (Optional[str]): Team name to build calendar for.
         all_teams (bool): Whether to build calendar for all teams.
-        competition (Optional[str]): Competition code to filter fixtures.
+        competition (Optional[list[str]]): Competition code to filter fixtures.
         season (Optional[int]): Season year (e.g., 2025 for 2025/26 season).
         home_only (bool): Whether to include only home fixtures.
         away_only (bool): Whether to include only away fixtures.
@@ -58,7 +49,7 @@ def build(
         refresh_competitions (bool): Whether to refresh the local competitions cache from the API.
     """
     output.mkdir(parents=True, exist_ok=True)
-    comps = [c.strip() for c in competitions.split(",") if c.strip()] if competitions else []
+    comps = [c.strip() for c in competitions if c.strip()] if competitions else []
 
     repo = FootballDataRepository()
     if refresh_cache:
@@ -118,16 +109,16 @@ def build(
 
 
 def cache_teams(
-    competitions: str,
+    competitions: list[str],
     output: Path = Path("data/teams.yaml"),
 ) -> None:
     """Cache team data for specified competitions.
 
     Args:
-        competitions (str): Comma-separated competition codes.
+        competitions (list[str]): List of competition codes.
         output (Path): Path to cache the team data.
     """
     repo = FootballDataRepository()
-    comps = [c.strip() for c in competitions.split(",") if c.strip()]
+    comps = [c.strip() for c in competitions if c.strip()]
     repo.client.refresh_team_cache(comps, cache_path=output)
     print(f"✅ Cached teams to {output}")

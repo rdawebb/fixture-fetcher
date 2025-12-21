@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-import logging
 from datetime import datetime
 from typing import Iterable, List
 
 from src.logic.fixtures.models import Fixture
 from src.utils import DataProcessingError, InvalidInputError
+from src.utils.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class Filter:
@@ -67,7 +67,9 @@ class Filter:
             return result
         except AttributeError as e:
             logger.error(f"Error filtering home fixtures: {e}")
-            raise DataProcessingError("Failed to filter home fixtures", context=e) from e
+            raise DataProcessingError(
+                "Failed to filter home fixtures", context=e
+            ) from e
 
     @staticmethod
     def only_away(fixtures: Iterable[Fixture]) -> List[Fixture]:
@@ -88,7 +90,9 @@ class Filter:
             return result
         except AttributeError as e:
             logger.error(f"Error filtering away fixtures: {e}")
-            raise DataProcessingError("Failed to filter away fixtures", context=e) from e
+            raise DataProcessingError(
+                "Failed to filter away fixtures", context=e
+            ) from e
 
     @staticmethod
     def only_scheduled(fixtures: Iterable[Fixture]) -> List[Fixture]:
@@ -109,7 +113,9 @@ class Filter:
             return result
         except AttributeError as e:
             logger.error(f"Error filtering scheduled fixtures: {e}")
-            raise DataProcessingError("Failed to filter scheduled fixtures", context=e) from e
+            raise DataProcessingError(
+                "Failed to filter scheduled fixtures", context=e
+            ) from e
 
     @staticmethod
     def only_televised(fixtures: Iterable[Fixture]) -> List[Fixture]:
@@ -130,7 +136,9 @@ class Filter:
             return result
         except AttributeError as e:
             logger.error(f"Error filtering televised fixtures: {e}")
-            raise DataProcessingError("Failed to filter televised fixtures", context=e) from e
+            raise DataProcessingError(
+                "Failed to filter televised fixtures", context=e
+            ) from e
 
     @staticmethod
     def by_competition(fixtures: Iterable[Fixture], comp_code: str) -> List[Fixture]:
@@ -154,7 +162,9 @@ class Filter:
             return result
         except AttributeError as e:
             logger.error(f"Error filtering fixtures by competition: {e}")
-            raise DataProcessingError("Failed to filter fixtures by competition", context=e) from e
+            raise DataProcessingError(
+                "Failed to filter fixtures by competition", context=e
+            ) from e
 
     @staticmethod
     def by_date_range(
@@ -187,4 +197,6 @@ class Filter:
             return result
         except AttributeError as e:
             logger.error(f"Error filtering fixtures by date range: {e}")
-            raise DataProcessingError("Failed to filter fixtures by date range", context=e) from e
+            raise DataProcessingError(
+                "Failed to filter fixtures by date range", context=e
+            ) from e

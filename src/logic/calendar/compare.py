@@ -1,3 +1,5 @@
+"""Compare two ICS calendar files for upcoming events"""
+
 from datetime import datetime
 from pathlib import Path
 from typing import Set

@@ -26,6 +26,7 @@ CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
 # Logging configuration
 
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
+LOG_DIR = os.getenv("LOG_DIR", "logs")
 LOG_FILE = os.getenv("LOG_FILE", "app.log")
 
 
@@ -47,3 +48,20 @@ def validate_config() -> None:
             f"Invalid LOG_LEVEL: {LOG_LEVEL}. Must be one of: DEBUG, INFO, WARNING, ERROR, CRITICAL",
             context="LOG_LEVEL",
         )
+
+
+def get_config() -> dict:
+    """
+    Get the current configuration settings.
+
+    Returns:
+        dict: A dictionary of configuration settings.
+    """
+    return {
+        "FOOTBALL_DATA_API": FOOTBALL_DATA_API,
+        "FOOTBALL_DATA_API_TOKEN": FOOTBALL_DATA_API_TOKEN,
+        "CACHE_PATH": str(CACHE_PATH),
+        "LOG_LEVEL": LOG_LEVEL,
+        "LOG_DIR": LOG_DIR,
+        "LOG_FILE": LOG_FILE,
+    }

@@ -3,15 +3,15 @@
 from __future__ import annotations
 
 import json
-import logging
 from dataclasses import asdict
 from pathlib import Path
 from typing import Dict, List, Tuple, cast
 
 from src.logic.fixtures.models import Fixture
 from src.utils import DataProcessingError
+from src.utils.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def _fixture_to_dict(fixture: Fixture) -> dict:
@@ -24,7 +24,9 @@ def _fixture_to_dict(fixture: Fixture) -> dict:
         dict: A dictionary representation of the Fixture.
     """
     dict = asdict(fixture)
-    dict["utc_kickoff"] = fixture.utc_kickoff.isoformat() if fixture.utc_kickoff else None
+    dict["utc_kickoff"] = (
+        fixture.utc_kickoff.isoformat() if fixture.utc_kickoff else None
+    )
     return dict
 
 

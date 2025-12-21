@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-import logging
 from pathlib import Path
 from typing import List, Optional
 
 import yaml
 
 from src.logic.fixtures.models import Fixture
+from src.utils.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def apply_overrides(fixtures: List[Fixture], overrides_path: Path) -> int:
