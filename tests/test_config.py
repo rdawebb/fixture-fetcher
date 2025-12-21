@@ -13,9 +13,7 @@ class TestConfig:
 
     def test_validate_config_success(self):
         """Test that validate_config passes with valid config."""
-        with patch("src.backend.config.FOOTBALL_DATA_API_TOKEN", "test_token"), patch(
-            "src.backend.config.LOG_LEVEL", "INFO"
-        ):
+        with patch("src.backend.config.FOOTBALL_DATA_API_TOKEN", "test_token"):
             validate_config()
 
     def test_validate_config_missing_token(self):
@@ -25,24 +23,3 @@ class TestConfig:
                 validate_config()
 
             assert "FOOTBALL_DATA_API_TOKEN" in str(exc_info.value)
-
-    def test_validate_config_invalid_log_level(self):
-        """Test that validate_config fails with invalid log level."""
-        with patch("src.backend.config.FOOTBALL_DATA_API_TOKEN", "test_token"), patch(
-            "src.backend.config.LOG_LEVEL", "INVALID"
-        ):
-            with pytest.raises(ConfigurationError) as exc_info:
-                validate_config()
-
-            assert "LOG_LEVEL" in str(exc_info.value)
-
-    def test_validate_config_all_valid_log_levels(self):
-        """Test that all valid log levels are accepted."""
-        valid_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
-
-        for level in valid_levels:
-            with patch("src.backend.config.FOOTBALL_DATA_API_TOKEN", "test_token"), patch(
-                "src.backend.config.LOG_LEVEL", level
-            ):
-                # Should not raise
-                validate_config()

@@ -1,11 +1,10 @@
 """Centralised logging setup for the application."""
 
 import logging
+import os
 from pathlib import Path
 from logging.handlers import RotatingFileHandler
 from typing import Optional
-
-from src.backend.config import get_config
 
 
 def get_logger(
@@ -25,15 +24,14 @@ def get_logger(
     Returns:
         logging.Logger: Configured logger instance.
     """
-    config = get_config()
     if not getattr(get_logger, "_configured", False):
-        log_dir = log_dir or config.get("LOG_DIR") or "logs"
+        log_dir = log_dir or os.getenv("LOG_DIR") or "logs"
         Path(log_dir).mkdir(parents=True, exist_ok=True)
 
-        log_file = log_file or config.get("LOG_FILE") or "app.log"
+        log_file = log_file or os.getenv("LOG_FILE") or "app.log"
         log_path = Path(log_dir) / log_file
 
-        log_level = (log_level or config.get("LOG_LEVEL") or "INFO").upper()
+        log_level = (log_level or os.getenv("LOG_LEVEL") or "INFO").upper()
 
         formatter = logging.Formatter(
             "%(asctime)s - %(name)s - %(levelname)s - %(message)s",

@@ -168,7 +168,7 @@ class TestBuildFunction:
         cache_dir = tmp_path / "cache"
         build(
             team="Manchester United",
-            competitions="PL,CL",
+            competitions=["PL", "CL"],
             output=output_dir,
             cache_dir=cache_dir,
         )
@@ -270,7 +270,7 @@ class TestCacheTeamsFunction:
         mock_repo_class.return_value = mock_repo
 
         cache_file = tmp_path / "teams.yaml"
-        cache_teams(competitions="PL", output=cache_file)
+        cache_teams(competitions=["PL"], output=cache_file)
 
         # Verify refresh_team_cache was called with correct competition
         call_args = mock_repo.client.refresh_team_cache.call_args
@@ -284,7 +284,7 @@ class TestCacheTeamsFunction:
         mock_repo_class.return_value = mock_repo
 
         cache_file = tmp_path / "teams.yaml"
-        cache_teams(competitions="PL, CL, FA", output=cache_file)
+        cache_teams(competitions=["PL", "CL", "FA"], output=cache_file)
 
         # Verify all competitions were parsed correctly
         call_args = mock_repo.client.refresh_team_cache.call_args
@@ -451,7 +451,9 @@ class TestCLIEndToEnd:
 
         with patch("src.app.cli.Path") as mock_path:
             # Mock the cache path to use our temp directory
-            mock_path.side_effect = lambda p: Path(cache_dir) / p if isinstance(p, str) else Path(p)
+            mock_path.side_effect = (
+                lambda p: Path(cache_dir) / p if isinstance(p, str) else Path(p)
+            )
 
             build(
                 team="Manchester United",

@@ -15,7 +15,7 @@ from .errors import (
     ValidationError,
 )
 from .handler import handle_error
-from .logging import setup_logging
+from .logging import get_logger
 
 __all__ = [
     "APIError",
@@ -31,5 +31,5 @@ __all__ = [
     "UnknownAPIError",
     "ValidationError",
     "handle_error",
-    "setup_logging",
+    "get_logger",
 ]
