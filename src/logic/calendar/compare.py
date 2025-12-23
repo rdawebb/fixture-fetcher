@@ -14,14 +14,14 @@ logger = get_logger(__name__)
 class CalendarComparison:
     """Class to compare two ICS calendar files for upcoming events"""
 
-    def get_upcoming_events(self, ics_file: Path) -> Set[str]:
-        """Get upcoming events from an ICS file as a string
+    def get_upcoming_events(self, ics_file: Path) -> Set[tuple]:
+        """Get upcoming events from an ICS file as a tuple
 
         Args:
             ics_file (Path): Path to the ICS file
 
         Returns:
-            Set of 'UID:DTSTART' strings for upcoming events
+            Set of (UID, DTSTART, DESCRIPTION) tuples for upcoming events
         """
         try:
             with open(ics_file, "rb") as f:
@@ -32,14 +32,19 @@ class CalendarComparison:
 
         now = datetime.now().astimezone()
 
+        upcoming_events = set()
         try:
-            upcoming_events = {
-                str(event.get("UID", "")): str(dtstart.dt.astimezone())
-                for event in cal.walk()
-                if event.name == "VEVENT"
-                and (dtstart := event.get("DTSTART")) is not None
-                and dtstart.dt.astimezone() > now
-            }
+            for event in cal.walk():
+                if event.name == "VEVENT":
+                    dtstart = event.get("DTSTART")
+                    if dtstart is not None and dtstart.dt.astimezone() > now:
+                        upcoming_events.add(
+                            (
+                                str(event.get("UID", "")),
+                                str(dtstart.dt.astimezone()),
+                                str(event.get("DESCRIPTION", "")),
+                            )
+                        )
         except Exception as e:
             logger.error(f"Error processing events in {ics_file}: {e}")
             raise DataProcessingError(
