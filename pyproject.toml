@@ -14,20 +14,20 @@ requires-python = ">=3.11"
 license = {text = "MIT"}
 authors = [{name = "rdawebb"}]
 dependencies = [
-    "beaupy>=0.1.5,<2.0.0",
-    "icalendar>=4.0.9,<5.0.0",
-    "pyyaml>=6.0,<7.0",
+    "beaupy>=3.10.2,<4.0.0",
+    "icalendar>=6.3.2,<7.0.0",
+    "pyyaml>=6.0.3,<7.0",
     "python-dotenv>=1.2.1,<2.0.0",
-    "requests>=2.32.0,<3.0.0",
-    "rich>=13.0.0,<14.0.0",
+    "requests>=2.32.5,<3.0.0",
+    "rich>=14.2.0,<15.0.0",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=9.0.2,<10.0.0",
     "pytest-cov>=7.0.0,<8.0.0",
-    "pytest-mock>=3.15.0,<4.0.0",
-    "ruff>=0.14.9,<15.0.0",
+    "pytest-mock>=3.15.1,<4.0.0",
+    "ruff>=0.14.10,<15.0.0",
 ]
 
 [tool.ruff]
