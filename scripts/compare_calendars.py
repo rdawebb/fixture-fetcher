@@ -6,8 +6,8 @@ from pathlib import Path
 from src.logic.calendar.compare import CalendarComparison
 
 if __name__ == "__main__":
-    old_dir = Path("public-old")
-    new_dir = Path("public")
+    old_dir = Path("public-old/calendars")
+    new_dir = Path("public/calendars")
 
     has_changes = CalendarComparison().compare_calendars(old_dir, new_dir)
     output = os.environ.get("GITHUB_OUTPUT")

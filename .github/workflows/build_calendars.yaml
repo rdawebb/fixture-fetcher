@@ -29,9 +29,13 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install uv
+        run: |
+          pip install uv
+
       - name: Install dependencies
         run: |
-          pip install .[dev]
+          uv sync --all-extras
 
       - name: Fetch previously deployed calendar
         run: |
@@ -44,7 +48,7 @@ jobs:
           PYTHONPATH: ${{ github.workspace }}
         run: |
           mkdir -p public
-          python scripts/build.py
+          uv run scripts/build.py
 
       - name: Copy static files
         run: cp -r static/* public/
@@ -54,7 +58,7 @@ jobs:
         env:
           PYTHONPATH: ${{ github.workspace }}
         run: |
-          python scripts/compare_calendars.py
+          uv run scripts/compare_calendars.py
 
       - name: Save cache
         uses: actions/cache@v4

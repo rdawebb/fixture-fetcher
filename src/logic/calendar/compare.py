@@ -66,13 +66,13 @@ class CalendarComparison:
         old_signature = set()
         new_signature = set()
 
-        for ics_file in sorted(old_dir.glob("*.ics")):
+        for ics_file in sorted(old_dir.glob("**/*.ics")):
             try:
                 old_signature.update(self.get_upcoming_events(ics_file))
             except (ICSReadError, DataProcessingError) as e:
                 logger.warning(f"Error processing {ics_file}: {e}")
 
-        for ics_file in sorted(new_dir.glob("*.ics")):
+        for ics_file in sorted(new_dir.glob("**/*.ics")):
             try:
                 new_signature.update(self.get_upcoming_events(ics_file))
             except (ICSReadError, DataProcessingError) as e:
