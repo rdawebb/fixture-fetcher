@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import datetime as dt
 from pathlib import Path
-from typing import Optional, cast
+from typing import Any, Optional, cast
 
 import requests
 import yaml
 
-from src.backend.config import CACHE_PATH, FOOTBALL_DATA_API, FOOTBALL_DATA_API_TOKEN
+from src.backend.config import get_config
 from src.logic.fixtures.models import Fixture
 from src.utils.errors import (
     AuthenticationError,
@@ -26,16 +26,11 @@ from src.utils.logging import get_logger
 
 logger = get_logger(__name__)
 
-API = FOOTBALL_DATA_API
-
-COMP_CODES: dict[str, str] = {
-    "PL": "Premier League",
-    "FA": "FA Cup",
-    "EC": "EFL Cup",
-    "CL": "Champions League",
-    "EL": "Europa League",
-    "UEL": "Europa Conference League",
-}
+config = get_config()
+API = config["FOOTBALL_DATA_API"]
+FOOTBALL_DATA_API_TOKEN = config["FOOTBALL_DATA_API_TOKEN"]
+CACHE_PATH = Path(config["CACHE_PATH"])
+COMP_CODES = config.get("FD_COMPETITIONS", {"PL": "Premier League"})
 
 HTTP_ERROR_MAP: dict[int, tuple] = {
     404: (NotFoundError, "warning"),
@@ -69,9 +64,9 @@ class FDClient:
         self.session.headers.update(self.token)
         self.cache_path = CACHE_PATH
         self.cache = self._load_cache()
-        logger.debug("FDClient initialized successfully")
+        logger.debug("FDClient initialised successfully")
 
-    def _load_cache(self) -> dict[str, int]:
+    def _load_cache(self) -> dict[str, Any]:
         """
         Load team cache from cache_path.
 
@@ -81,11 +76,14 @@ class FDClient:
         if self.cache_path.exists() and self.cache_path.is_file():
             try:
                 data = yaml.safe_load(self.cache_path.read_text()) or {}
-                print(f"🗂️ Loaded {len(data)} team IDs from cache")
+                num_teams = sum(
+                    len(teams) if isinstance(teams, dict) else 0
+                    for teams in data.values()
+                )
+                logger.info(f"Loaded {num_teams} team IDs from cache")
                 return data
             except yaml.YAMLError as e:
                 logger.error(f"Failed to load cache from {self.cache_path}: {e}")
-                print(f"⚠️ Failed to read from cache: {e}")
                 return {}
         return {}
 
@@ -97,7 +95,6 @@ class FDClient:
             self.cache_path.parent.mkdir(parents=True, exist_ok=True)
             if self.cache_path.exists() and self.cache_path.is_dir():
                 logger.error(f"Cache path {self.cache_path} is a directory, not a file")
-                print(f"⚠️ Cache path {self.cache_path} is a directory, not a file")
                 return
             self.cache_path.write_text(yaml.safe_dump(self.cache, sort_keys=True))
             logger.debug(f"Cache saved to {self.cache_path}")
@@ -105,7 +102,9 @@ class FDClient:
         except yaml.YAMLError as e:
             logger.error(f"Failed to save cache to {self.cache_path}: {e}")
 
-    def _add_to_cache(self, team_name: str, team_id: int) -> None:
+    def _add_to_cache(
+        self, league: str, team_name: str, team_id: int, short_name: str = None
+    ) -> None:
         """
         Add a team to the cache and save it.
 
@@ -113,8 +112,13 @@ class FDClient:
             team_name: Name of the team.
             team_id: ID of the team.
         """
+        if league not in self.cache:
+            self.cache[league] = {}
         normalised_name = team_name.title()
-        self.cache[normalised_name] = team_id
+        self.cache[league][normalised_name] = {
+            "id": team_id,
+            "short_name": short_name or normalised_name,
+        }
         self._save_cache()
 
     def refresh_team_cache(
@@ -131,7 +135,7 @@ class FDClient:
             self.cache_path = cache_path
 
         comps = competitions if competitions else list(COMP_CODES.keys())
-        all_teams: dict[str, int] = {}
+        all_teams: dict[str, Any] = {}
 
         for code in comps:
             try:
@@ -141,12 +145,16 @@ class FDClient:
                 response.raise_for_status()
                 data = self._handle_response(response, f"teams for competition {code}")
 
-                data_teams = data.get("teams", [])
-                for team in data_teams:
-                    all_teams[team["name"]] = team["id"]
+                league_name = COMP_CODES.get(code, code)
+                if league_name not in all_teams:
+                    all_teams[league_name] = {}
+                for team in data.get("teams", []):
+                    all_teams[league_name][team["name"]] = {
+                        "id": team["id"],
+                        "short_name": team.get("shortName", team["name"]),
+                    }
             except Exception as e:
                 logger.error(f"{code} - Failed to refresh team cache: {e}")
-                print(f"⚠️ {code}: failed to refresh team cache: {e}")
                 raise ConnectionError(
                     f"Failed to refresh team cache for competition {code}: {e}"
                 ) from e
@@ -215,11 +223,13 @@ class FDClient:
             NotFoundError: If the team is not found.
         """
         # Check cache first (case-insensitive lookup)
-        for cached_name, team_id in self.cache.items():
-            if cached_name.lower() == team_name.lower():
-                logger.info(f"Found team ID for '{team_name}' in cache: {team_id}")
-                print(f"✅ Found team ID for '{team_name}' in cache: {team_id}")
-                return team_id
+        for league, teams in self.cache.items():
+            for cached_name, info in teams.items():
+                if (
+                    cached_name.lower() == team_name.lower()
+                    or info["short_name"].lower() == team_name.lower()
+                ):
+                    return int(info["id"])
 
         print(f"🔍 {team_name} not found in cache - fetching from football-data.org...")
         try:
@@ -255,7 +265,12 @@ class FDClient:
                 or team["shortName"].lower() == team_name.lower()
             ):
                 team_id = cast(int, team["id"])
-                self._add_to_cache(team["name"], team_id)
+                self._add_to_cache(
+                    COMP_CODES.get("PL", "Premier League"),
+                    team["name"],
+                    team_id,
+                    team.get("shortName", team["name"]),
+                )
                 logger.info(f"Fetched and cached team ID for '{team_name}': {team_id}")
                 print(f"🔄 Fetched and cached team ID for '{team_name}': {team_id}")
                 return team_id

@@ -69,11 +69,17 @@ class TestDictToKeyFields:
         fixture_dict = {
             "utc_kickoff": "2025-11-15T15:00:00+00:00",
             "venue": "Stadium A",
+            "tv": "Sky Sports",
             "status": "SCHEDULED",
         }
         result = _dict_to_key_fields(fixture_dict)
 
-        assert result == ("2025-11-15T15:00:00+00:00", "Stadium A", "SCHEDULED")
+        assert result == (
+            "2025-11-15T15:00:00+00:00",
+            "Stadium A",
+            "Sky Sports",
+            "SCHEDULED",
+        )
 
     def test_dict_to_key_fields_missing_values(self):
         """Test extracting key fields when some are missing."""
@@ -84,14 +90,14 @@ class TestDictToKeyFields:
         }
         result = _dict_to_key_fields(fixture_dict)
 
-        assert result == ("", "", "SCHEDULED")
+        assert result == ("", "", "", "SCHEDULED")
 
     def test_dict_to_key_fields_empty_dict(self):
         """Test extracting key fields from empty dict."""
         fixture_dict = {}
         result = _dict_to_key_fields(fixture_dict)
 
-        assert result == ("", "", "")
+        assert result == ("", "", "", "")
 
 
 class TestSaveSnapshot:
@@ -254,7 +260,7 @@ class TestDiffChanges:
 
         result = diff_changes([fixture], snapshot)
 
-        assert result == {"time": 0, "venue": 0, "status": 0}
+        assert result == {"time": 0, "venue": 0, "tv": 0, "status": 0}
 
     def test_diff_changes_kickoff_time_changed(self, tmp_path):
         """Test diffing when kickoff time changed."""
@@ -431,4 +437,4 @@ class TestDiffChanges:
 
         result = diff_changes([new_fixture], snapshot)
 
-        assert result == {"time": 0, "venue": 0, "status": 0}
+        assert result == {"time": 0, "venue": 0, "tv": 0, "status": 0}

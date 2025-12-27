@@ -78,9 +78,10 @@ class TestFDClientCache:
 
         with patch("src.backend.api.football_data.CACHE_PATH", cache_file):
             client = FDClient()
-            client._add_to_cache("Chelsea", 61)
+            client._add_to_cache("Premier League", "Chelsea", 61, "CHE")
 
-            assert client.cache["Chelsea"] == 61
+            assert client.cache["Premier League"]["Chelsea"]["id"] == 61
+            assert client.cache["Premier League"]["Chelsea"]["short_name"] == "CHE"
             assert cache_file.exists()
 
 
@@ -166,16 +167,17 @@ class TestFDClientRefreshCache:
             mock_response.status_code = 200
             mock_response.json.return_value = {
                 "teams": [
-                    {"name": "Team A", "id": 1},
-                    {"name": "Team B", "id": 2},
+                    {"name": "Team A", "id": 1, "shortName": "TA"},
+                    {"name": "Team B", "id": 2, "shortName": "TB"},
                 ]
             }
 
             with patch.object(client.session, "get", return_value=mock_response):
                 client.refresh_team_cache(competitions=["PL"])
 
-            assert "Team A" in client.cache
-            assert client.cache["Team A"] == 1
+            assert "Team A" in client.cache["Premier League"]
+            assert client.cache["Premier League"]["Team A"]["id"] == 1
+            assert client.cache["Premier League"]["Team A"]["short_name"] == "TA"
             assert cache_file.exists()
 
     @patch("src.backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token")
@@ -190,7 +192,9 @@ class TestFDClientRefreshCache:
             mock_response.status_code = 200
             mock_response.json.return_value = {"teams": []}
 
-            with patch.object(client.session, "get", return_value=mock_response) as mock_get:
+            with patch.object(
+                client.session, "get", return_value=mock_response
+            ) as mock_get:
                 # Should default to all competition codes
                 client.refresh_team_cache()
 
@@ -205,7 +209,9 @@ class TestFDClientGetTeamId:
     def test_get_team_id_from_cache(self, tmp_path):
         """Test getting team ID from cache."""
         cache_file = tmp_path / "teams.yaml"
-        cache_data = {"Manchester United": 66}
+        cache_data = {
+            "Premier League": {"Manchester United": {"id": 66, "short_name": "MUN"}}
+        }
         cache_file.write_text(yaml.safe_dump(cache_data))
 
         with patch("src.backend.api.football_data.CACHE_PATH", cache_file):
@@ -218,7 +224,9 @@ class TestFDClientGetTeamId:
     def test_get_team_id_case_insensitive_cache(self, tmp_path):
         """Test getting team ID from cache is case-insensitive."""
         cache_file = tmp_path / "teams.yaml"
-        cache_data = {"Manchester United": 66}
+        cache_data = {
+            "Premier League": {"Manchester United": {"id": 66, "short_name": "MUN"}}
+        }
         cache_file.write_text(yaml.safe_dump(cache_data))
 
         with patch("src.backend.api.football_data.CACHE_PATH", cache_file):
@@ -428,7 +436,9 @@ class TestFDClientFetchFixtures:
                 }
 
                 with patch.object(client.session, "get", return_value=mock_response):
-                    result = client.fetch_fixtures("Manchester United", competitions=["PL"])
+                    result = client.fetch_fixtures(
+                        "Manchester United", competitions=["PL"]
+                    )
 
                 assert len(result) == 1
                 assert result[0].competition_code == "PL"

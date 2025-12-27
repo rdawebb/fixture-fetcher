@@ -20,8 +20,20 @@ FOOTBALL_DATA_API_TOKEN = os.getenv("FOOTBALL_DATA_API_TOKEN")
 
 # Cache configuration
 
+CACHE_DIR = Path(os.getenv("CACHE_DIR", "data/cache/"))
+CACHE_DIR.mkdir(parents=True, exist_ok=True)
 CACHE_PATH = Path(os.getenv("CACHE_PATH", "data/cache/teams.yaml"))
 CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+TV_OVERRIDES_PATH = Path(
+    os.getenv("TV_OVERRIDES_PATH", "data/overrides/tv_overrides.yaml")
+)
+TV_OVERRIDES_PATH.parent.mkdir(parents=True, exist_ok=True)
+
+# API constants
+
+FD_COMPETITIONS = {
+    "PL": "Premier League",
+}
 
 
 def validate_config() -> None:
@@ -45,8 +57,10 @@ def get_config() -> dict:
     Returns:
         dict: A dictionary of configuration settings.
     """
+    validate_config()
     return {
         "FOOTBALL_DATA_API": FOOTBALL_DATA_API,
         "FOOTBALL_DATA_API_TOKEN": FOOTBALL_DATA_API_TOKEN,
+        "CACHE_DIR": str(CACHE_DIR),
         "CACHE_PATH": str(CACHE_PATH),
     }

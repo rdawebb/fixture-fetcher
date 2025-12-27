@@ -29,18 +29,19 @@ def _fixture_to_dict(fixture: Fixture) -> dict:
     return dict
 
 
-def _dict_to_key_fields(d: dict) -> Tuple[str, str, str]:
+def _dict_to_key_fields(d: dict) -> Tuple[str, str, str, str]:
     """Extract key fields from a fixture dictionary for comparison.
 
     Args:
         d (dict): The fixture dictionary.
 
     Returns:
-        Tuple[str, str, str]: A tuple of (kickoff, venue, status).
+        Tuple[str, str, str, str]: A tuple of (kickoff, venue, tv, status).
     """
     return (
         d.get("utc_kickoff", "") or "",
         d.get("venue") or "",
+        d.get("tv", "") or "",
         d.get("status", "") or "",
     )
 
@@ -89,9 +90,9 @@ def diff_changes(current: List[Fixture], snapshot: Dict[str, dict]) -> Dict[str,
         snapshot (Dict[str, dict]): The snapshot dictionary mapping fixture IDs to their data.
 
     Returns:
-        Dict[str, int]: A dictionary with counts of 'time', 'venue', and 'status' changes.
+        Dict[str, int]: A dictionary with counts of 'time', 'venue', 'tv', and 'status' changes.
     """
-    counts = {"time": 0, "venue": 0, "status": 0}
+    counts = {"time": 0, "venue": 0, "tv": 0, "status": 0}
     for f in current:
         prev = snapshot.get(f.id)
         if not prev:
@@ -99,6 +100,7 @@ def diff_changes(current: List[Fixture], snapshot: Dict[str, dict]) -> Dict[str,
         curr_tuple = (
             f.utc_kickoff.isoformat() if f.utc_kickoff else "",
             f.venue or "",
+            f.tv or "",
             f.status or "",
         )
 
@@ -109,6 +111,8 @@ def diff_changes(current: List[Fixture], snapshot: Dict[str, dict]) -> Dict[str,
         if curr_tuple[1] != prev_tuple[1]:
             counts["venue"] += 1
         if curr_tuple[2] != prev_tuple[2]:
+            counts["tv"] += 1
+        if curr_tuple[3] != prev_tuple[3]:
             counts["status"] += 1
 
     logger.info(f"Diff changes: {counts}")

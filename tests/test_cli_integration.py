@@ -8,6 +8,7 @@ import pytest
 
 from src.app.cli import _slug, build, cache_teams
 from src.logic.fixtures.models import Fixture
+from src.utils.errors import InvalidInputError
 
 
 class TestSlugFunction:
@@ -42,12 +43,14 @@ class TestSlugFunction:
 class TestBuildFunction:
     """Integration tests for the build function."""
 
+    @patch("src.app.cli.get_team_league")
     @patch("src.app.cli.FootballDataRepository")
-    def test_build_with_team(self, mock_repo_class, tmp_path):
+    def test_build_with_team(self, mock_repo_class, mock_get_team_league, tmp_path):
         """Test building ICS file for a specific team."""
         # Setup mock repository and fixtures
         mock_repo = Mock()
         mock_repo_class.return_value = mock_repo
+        mock_get_team_league.return_value = "Premier League"
 
         fixture = Fixture(
             id="1",
@@ -82,22 +85,26 @@ class TestBuildFunction:
 
     @patch("src.app.cli.FootballDataRepository")
     def test_build_no_team_specified(self, mock_repo_class, tmp_path):
-        """Test build function returns without team specified."""
+        """Test build function raises error when no team specified."""
         mock_repo = Mock()
         mock_repo_class.return_value = mock_repo
 
         output_dir = tmp_path / "output"
         cache_dir = tmp_path / "cache"
-        build(output=output_dir, cache_dir=cache_dir)
+
+        with pytest.raises(InvalidInputError):
+            build(output=output_dir, cache_dir=cache_dir)
 
         # Repository should not be called when no team is specified
         mock_repo.fetch_fixtures.assert_not_called()
 
+    @patch("src.app.cli.get_team_league")
     @patch("src.app.cli.FootballDataRepository")
-    def test_build_with_filters(self, mock_repo_class, tmp_path):
+    def test_build_with_filters(self, mock_repo_class, mock_get_team_league, tmp_path):
         """Test build function applies filters correctly."""
         mock_repo = Mock()
         mock_repo_class.return_value = mock_repo
+        mock_get_team_league.return_value = "Premier League"
 
         # Create multiple fixtures with different properties
         fixtures = [
@@ -143,11 +150,15 @@ class TestBuildFunction:
         ics_files = list(output_dir.rglob("*.ics"))
         assert len(ics_files) > 0
 
+    @patch("src.app.cli.get_team_league")
     @patch("src.app.cli.FootballDataRepository")
-    def test_build_with_competitions_filter(self, mock_repo_class, tmp_path):
+    def test_build_with_competitions_filter(
+        self, mock_repo_class, mock_get_team_league, tmp_path
+    ):
         """Test build function with competition filter."""
         mock_repo = Mock()
         mock_repo_class.return_value = mock_repo
+        mock_get_team_league.return_value = "Premier League"
 
         fixture = Fixture(
             id="1",
@@ -376,12 +387,16 @@ class TestCLIEndToEnd:
     ICS file generation.
     """
 
+    @patch("src.app.cli.get_team_league")
     @patch("src.app.cli.FootballDataRepository")
-    def test_full_workflow_build_and_export(self, mock_repo_class, tmp_path):
+    def test_full_workflow_build_and_export(
+        self, mock_repo_class, mock_get_team_league, tmp_path
+    ):
         """Test complete workflow of building ICS files."""
         # Setup mock data
         mock_repo = Mock()
         mock_repo_class.return_value = mock_repo
+        mock_get_team_league.return_value = "Premier League"
 
         fixture = Fixture(
             id="1",

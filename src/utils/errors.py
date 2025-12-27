@@ -163,6 +163,18 @@ class ICSWriteError(ApplicationError):
     LOG_LEVEL = "error"
 
 
+class TeamNotFoundError(ApplicationError):
+    """Raised when a specified team is not found."""
+
+    LOG_LEVEL = "warning"
+
+
+class TeamsCacheError(ApplicationError):
+    """Raised when there is an error with the teams cache."""
+
+    LOG_LEVEL = "error"
+
+
 class UnknownError(ApplicationError):
     """Raised for unknown errors."""
 

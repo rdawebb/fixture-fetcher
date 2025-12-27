@@ -10,13 +10,14 @@ help:
     @echo "  just test-cov     - Run tests with coverage report"
     @echo "  just run          - Run the CLI app"
     @echo "  just overrides    - Generate overrides template"
+    @echo "  just cache        - Update the team cache"
     @echo "  just clean        - Remove cache and temporary files"
 
 install:
     uv pip install .
 
 install-dev:
-    uv pip install .[dev]
+    uv sync --all-extras
 
 lint:
     ruff check src/ --show-fixes
@@ -36,5 +37,8 @@ run:
 overrides:
     uv run python -m scripts.make_overrides_template
 
+cache:
+    uv run python -m scripts.cache
+
 clean:
-    uv run python scripts/clean.py
+    uv run python -m scripts.clean
