@@ -1,6 +1,7 @@
 """Tests for the filters module."""
 
 from datetime import datetime, timezone
+from unittest.mock import Mock
 
 import pytest
 
@@ -143,7 +144,6 @@ class TestFilter:
 
     def test_by_date_range_boundary_dates(self, sample_fixtures):
         """Test filtering by exact boundary dates."""
-        # Fixture 2 is at 2025-11-12T20:00:00Z
         start_date = datetime(2025, 11, 12, 20, 0, 0, tzinfo=timezone.utc)
         end_date = datetime(2025, 11, 12, 20, 0, 0, tzinfo=timezone.utc)
 
@@ -154,8 +154,6 @@ class TestFilter:
 
     def test_apply_filters_with_competition(self, sample_fixtures):
         """Test that apply_filters can be extended with competition filter."""
-        # This tests the current limitation that apply_filters doesn't support competition
-        # but we can see if we want to add it
         result = Filter.apply_filters(sample_fixtures, scheduled_only=True)
 
         # Should still include all scheduled competitions
@@ -163,3 +161,51 @@ class TestFilter:
         assert any(f.competition_code == "PL" for f in result)
         assert any(f.competition_code == "CL" for f in result)
         assert any(f.competition_code == "FA" for f in result)
+
+    def test_only_home_attribute_error(self):
+        """Test only_home handles missing is_home attribute."""
+        bad_fixture = Mock()
+        del bad_fixture.is_home  # Remove attribute to cause error
+
+        with pytest.raises(DataProcessingError):
+            Filter.only_home([bad_fixture])
+
+    def test_only_away_attribute_error(self):
+        """Test only_away handles missing is_home attribute."""
+        bad_fixture = Mock()
+        del bad_fixture.is_home  # Remove attribute to cause error
+
+        with pytest.raises(DataProcessingError):
+            Filter.only_away([bad_fixture])
+
+    def test_only_televised_attribute_error(self):
+        """Test only_televised handles missing tv attribute."""
+        bad_fixture = Mock()
+        del bad_fixture.tv  # Remove attribute to cause error
+
+        with pytest.raises(DataProcessingError):
+            Filter.only_televised([bad_fixture])
+
+    def test_by_competition_empty_string(self, sample_fixtures):
+        """Test filtering by empty string competition code."""
+        with pytest.raises(InvalidInputError):
+            Filter.by_competition(sample_fixtures, "")
+
+    def test_by_date_range_attribute_error(self):
+        """Test by_date_range handles missing utc_kickoff attribute."""
+        bad_fixture = Mock()
+        del bad_fixture.utc_kickoff
+
+        start_date = datetime(2025, 11, 1, 0, 0, 0, tzinfo=timezone.utc)
+        end_date = datetime(2025, 11, 30, 23, 59, 59, tzinfo=timezone.utc)
+
+        with pytest.raises(DataProcessingError):
+            Filter.by_date_range([bad_fixture], start_date, end_date)
+
+    def test_only_scheduled_attribute_error(self):
+        """Test only_scheduled handles missing status attribute."""
+        bad_fixture = Mock()
+        del bad_fixture.status
+
+        with pytest.raises(DataProcessingError):
+            Filter.only_scheduled([bad_fixture])

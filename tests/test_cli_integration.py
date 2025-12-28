@@ -379,6 +379,62 @@ class TestCLIClass:
         # Build should not be called
         # (Need to patch build to verify, but it shouldn't be reached)
 
+    @patch("src.app.shell.confirm")
+    @patch("src.app.shell.select")
+    @patch("src.app.shell.select_multiple")
+    @patch("src.app.shell.build")
+    def test_cli_interactive_prompt_with_build_error(
+        self, mock_build, mock_select_multiple, mock_select, mock_confirm
+    ):
+        """Test CLI handles errors during build gracefully."""
+        from src.app.shell import CLI
+
+        mock_confirm.return_value = True
+        mock_select.return_value = "Manchester United FC"
+        mock_select_multiple.return_value = ["Premier League"]
+        mock_build.side_effect = Exception("Build failed")
+
+        cli = CLI()
+        # Should handle exception gracefully
+        with pytest.raises(Exception):
+            cli.interactive_prompt()
+
+    def test_cli_welcome_message_renders(self):
+        """Test that welcome message renders without error."""
+        from src.app.shell import CLI
+
+        cli = CLI()
+        # Create a mock console to avoid printing
+        with patch.object(cli, "console") as mock_console:
+            cli.welcome_message()
+            # Verify print was called
+            mock_console.print.assert_called_once()
+
+    @patch("src.app.shell.confirm")
+    @patch("src.app.shell.select")
+    @patch("src.app.shell.select_multiple")
+    @patch("src.app.shell.Spinner")
+    @patch("src.app.shell.build")
+    def test_cli_full_interactive_flow(
+        self, mock_build, mock_spinner, mock_select_multiple, mock_select, mock_confirm
+    ):
+        """Test full interactive flow with all UI elements."""
+        from src.app.shell import CLI
+
+        mock_confirm.return_value = True
+        mock_select.return_value = "Manchester United FC"
+        mock_select_multiple.return_value = ["Premier League"]
+        mock_spinner_instance = Mock()
+        mock_spinner.return_value = mock_spinner_instance
+
+        cli = CLI()
+        cli.interactive_prompt()
+
+        # Verify spinner was started and stopped
+        mock_spinner_instance.start.assert_called_once()
+        mock_spinner_instance.stop.assert_called_once()
+        mock_build.assert_called_once()
+
 
 class TestCLIEndToEnd:
     """End-to-end integration tests for the CLI.
@@ -478,3 +534,132 @@ class TestCLIEndToEnd:
 
             # First run creates snapshot
             # Second run would compare against snapshot
+
+    @patch("src.app.cli.get_team_league")
+    @patch("src.app.cli.FootballDataRepository")
+    def test_build_error_on_enrich(
+        self, mock_repo_class, mock_get_team_league, tmp_path
+    ):
+        """Test build handles errors during enrich_all."""
+        mock_repo = Mock()
+        mock_repo_class.return_value = mock_repo
+        mock_get_team_league.return_value = "Premier League"
+
+        fixture = Fixture(
+            id="1",
+            competition="Premier League",
+            competition_code="PL",
+            matchday=1,
+            utc_kickoff=datetime(2025, 11, 15, 15, 0, 0, tzinfo=timezone.utc),
+            home_team="Manchester United",
+            away_team="Liverpool",
+            venue="Old Trafford",
+            status="SCHEDULED",
+            tv="Sky Sports",
+            is_home=True,
+        )
+        mock_repo.fetch_fixtures.return_value = [fixture]
+
+        output_dir = tmp_path / "output"
+        cache_dir = tmp_path / "cache"
+
+        with patch("src.app.cli.enrich_all") as mock_enrich:
+            mock_enrich.side_effect = Exception("Enrichment failed")
+
+            result = build(
+                team="Manchester United",
+                output=output_dir,
+                cache_dir=cache_dir,
+            )
+
+        # Should handle error gracefully and return failed entry
+        assert len(result["failed"]) > 0
+
+    @patch("src.app.cli.get_team_league")
+    @patch("src.app.cli.FootballDataRepository")
+    def test_build_with_all_filters(
+        self, mock_repo_class, mock_get_team_league, tmp_path
+    ):
+        """Test build function with all filter options enabled."""
+        mock_repo = Mock()
+        mock_repo_class.return_value = mock_repo
+        mock_get_team_league.return_value = "Premier League"
+
+        fixture = Fixture(
+            id="1",
+            competition="Premier League",
+            competition_code="PL",
+            matchday=1,
+            utc_kickoff=datetime(2025, 11, 15, 15, 0, 0, tzinfo=timezone.utc),
+            home_team="Manchester United",
+            away_team="Liverpool",
+            venue="Old Trafford",
+            status="SCHEDULED",
+            tv="Sky Sports",
+            is_home=True,
+        )
+        mock_repo.fetch_fixtures.return_value = [fixture]
+
+        output_dir = tmp_path / "output"
+        cache_dir = tmp_path / "cache"
+
+        result = build(
+            team="Manchester United",
+            home_only=True,
+            away_only=False,
+            televised_only=True,
+            output=output_dir,
+            cache_dir=cache_dir,
+        )
+
+        # Should complete successfully
+        assert output_dir.exists()
+        assert len(result["successful"]) > 0
+
+    @patch("src.app.cli.get_team_league")
+    @patch("src.app.cli.FootballDataRepository")
+    def test_build_get_team_league_not_found(
+        self, mock_repo_class, mock_get_team_league, tmp_path
+    ):
+        """Test build when team is not found in league cache."""
+        mock_repo = Mock()
+        mock_repo_class.return_value = mock_repo
+        mock_get_team_league.side_effect = Exception("Team not found")
+
+        output_dir = tmp_path / "output"
+        cache_dir = tmp_path / "cache"
+
+        result = build(
+            team="Unknown Team",
+            output=output_dir,
+            cache_dir=cache_dir,
+        )
+
+        # Should handle error and add to failed list
+        assert len(result["failed"]) > 0
+
+    @patch("src.app.cli.FootballDataRepository")
+    def test_cache_teams_with_whitespace(self, mock_repo_class, tmp_path):
+        """Test cache_teams strips whitespace from competition codes."""
+        mock_repo = Mock()
+        mock_repo_class.return_value = mock_repo
+
+        cache_file = tmp_path / "teams.yaml"
+        cache_teams(competitions=["  PL  ", "CL", "  FA  "], output=cache_file)
+
+        # Verify whitespace is stripped
+        call_args = mock_repo.client.refresh_team_cache.call_args
+        assert call_args[0][0] == ["PL", "CL", "FA"]
+
+    @patch("src.app.cli.FootballDataRepository")
+    def test_cache_teams_empty_strings_filtered(self, mock_repo_class, tmp_path):
+        """Test cache_teams filters out empty competition codes."""
+        mock_repo = Mock()
+        mock_repo_class.return_value = mock_repo
+
+        cache_file = tmp_path / "teams.yaml"
+        cache_teams(competitions=["PL", "", "CL", "   "], output=cache_file)
+
+        # Verify empty strings are filtered
+        call_args = mock_repo.client.refresh_team_cache.call_args
+        assert call_args[0][0] == ["PL", "CL"]

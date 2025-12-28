@@ -150,7 +150,7 @@ class Filter:
         Returns:
             List[Fixture]: A list of Fixture objects that match the competition code.
         """
-        if comp_code is None or not isinstance(comp_code, str):
+        if comp_code is None or comp_code == "" or not isinstance(comp_code, str):
             logger.error("Invalid competition code provided for filtering.")
             raise InvalidInputError("Competition code must be a non-empty string.")
 
