@@ -50,11 +50,20 @@ jobs:
           mkdir -p public
           uv run scripts/build.py
 
+      - name: Validate build output
+        run: |
+          if [ -z "$(find public/calendars -type f -name '*.ics' 2>/dev/null)" ]; then
+            echo "❌ No calendars were generated"
+            exit 1
+          fi
+          echo "✅ At least one calendar generated successfully"
+
       - name: Copy static files
         run: cp -r static/* public/
 
       - name: Check for calendar changes
         id: changes
+        if: success()
         env:
           PYTHONPATH: ${{ github.workspace }}
         run: |
@@ -67,7 +76,7 @@ jobs:
           key: team-cache-${{ runner.os }}
 
       - name: Deploy to GitHub Pages
-        if: steps.changes.outputs.has_changes == 'true'
+        if: success() && steps.changes.outputs.has_changes == 'true'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}

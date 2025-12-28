@@ -121,6 +121,12 @@ class ApplicationError(Exception):
         self._log()
 
 
+class CalendarError(ApplicationError):
+    """Raised for calendar-related errors."""
+
+    LOG_LEVEL = "error"
+
+
 class ConfigurationError(ApplicationError):
     """Raised for configuration-related errors."""
 
@@ -145,12 +151,6 @@ class InvalidInputError(ApplicationError):
     LOG_LEVEL = "error"
 
 
-class OperationError(ApplicationError):
-    """Raised when an operation cannot be completed."""
-
-    LOG_LEVEL = "error"
-
-
 class ICSReadError(ApplicationError):
     """Raised when there is an error reading ICS files."""
 
@@ -159,6 +159,12 @@ class ICSReadError(ApplicationError):
 
 class ICSWriteError(ApplicationError):
     """Raised when there is an error writing ICS files."""
+
+    LOG_LEVEL = "error"
+
+
+class OperationError(ApplicationError):
+    """Raised when an operation cannot be completed."""
 
     LOG_LEVEL = "error"
 

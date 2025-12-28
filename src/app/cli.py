@@ -13,6 +13,7 @@ from src.logic.fixtures.enrich import enrich_all
 from src.logic.fixtures.filters import Filter
 from src.utils import (
     get_logger,
+    CalendarError,
     InvalidInputError,
     TeamNotFoundError,
     TeamsCacheError,
@@ -55,7 +56,7 @@ def build(
     refresh_cache: bool = False,
     refresh_competitions: bool = False,  # not used currently
     summarise: bool = True,
-) -> None:
+) -> dict:
     """Build ICS calendar files for football fixtures.
 
     Args:
@@ -72,6 +73,12 @@ def build(
         refresh_competitions (bool): Whether to refresh the local competitions cache from the API.
         summarise (bool): Whether to print a summary of changes.
 
+    Returns:
+        dict: Summary of the build process with keys:
+            - successful: List of (team_name, competition_name) tuples
+            - failed: List of (team_name, error_message) tuples
+            - total: Total number of teams attempted
+
     Raises:
         InvalidInputError: If neither team nor all_teams is specified.
     """
@@ -86,63 +93,103 @@ def build(
         raise InvalidInputError("Team must be specified.")
     teams = [team]
 
+    successful = []
+    failed = []
+
     for t in teams:
         try:
             league = get_team_league(t)
+            team_slug = _slug(t)
 
             fixtures = repo.fetch_fixtures(t, comps, season)
             fixtures = Filter.apply_filters(fixtures, scheduled_only=True)
 
-            if fixtures:
-                comp_name = fixtures[0].competition
-                comp_slug = _slug(comp_name)
-            else:
-                comp_slug = _slug(competitions) if competitions else "all"
+            fixtures_by_comp = {}
+            for fixture in fixtures:
+                comp_code = fixture.competition_code
+                if comp_code not in fixtures_by_comp:
+                    fixtures_by_comp[comp_code] = []
+                fixtures_by_comp[comp_code].append(fixture)
 
-            team_slug = _slug(t)
-            snap_path = (
-                cache_dir
-                / "snapshots"
-                / league
-                / team_slug
-                / f"{team_slug}.{comp_slug}.json"
+            for comp_code, comp_fixtures in fixtures_by_comp.items():
+                if not comp_fixtures:
+                    logger.warning(
+                        f"No fixtures found for competition '{comp_code}' for team '{t}', skipping."
+                    )
+                    continue
+
+                try:
+                    comp_name = comp_fixtures[0].competition
+                    comp_slug = _slug(comp_name)
+
+                    snap_path = (
+                        cache_dir
+                        / "snapshots"
+                        / league
+                        / team_slug
+                        / f"{team_slug}.{comp_slug}.json"
+                    )
+                    prev = load_snapshot(snap_path)
+
+                    stats = enrich_all(comp_fixtures, overrides_path=overrides)
+
+                    filtered_fixtures = comp_fixtures[:]
+                    if home_only:
+                        filtered_fixtures = Filter.only_home(filtered_fixtures)
+                    if away_only:
+                        filtered_fixtures = Filter.only_away(filtered_fixtures)
+                    if televised_only:
+                        filtered_fixtures = Filter.only_televised(filtered_fixtures)
+
+                    team_output_dir = output / league / team_slug
+                    team_output_dir.mkdir(parents=True, exist_ok=True)
+
+                    fname = f"{team_slug}.{comp_slug}.ics"
+                    writer = ICSWriter(filtered_fixtures)
+                    output_file = writer.write(team_output_dir / fname)
+                    logger.info(
+                        f"Wrote {len(filtered_fixtures)} fixtures for team '{t}' in {comp_name} to {output_file}"
+                    )
+                    successful.append((t, comp_name))
+
+                    if summarise:
+                        changes = diff_changes(comp_fixtures, prev)
+                        print(
+                            f"[{t}] - {comp_name} fixtures: {len(comp_fixtures)}\n"
+                            f"🔄 Changes since last update: {changes['time']} time, {changes['venue']} venue, {changes['status']} status\n"
+                            f"📺 TV info added: {stats['tv_overrides_applied']}"
+                        )
+
+                    save_snapshot(comp_fixtures, snap_path)
+
+                except Exception as e:
+                    raise CalendarError(
+                        f"Failed to build calendar for {comp_name}",
+                        context={"team": t, "competition": comp_name, "error": str(e)},
+                    ) from e
+
+        except CalendarError as e:
+            error_msg = str(e)
+            logger.error(
+                f"Failed to build ICS for team '{t}' in {comp_name}: {error_msg}"
             )
-            prev = load_snapshot(snap_path)
-
-            stats = enrich_all(fixtures, overrides_path=overrides)
-
-            if home_only:
-                fixtures = Filter.only_home(fixtures)
-            if away_only:
-                fixtures = Filter.only_away(fixtures)
-            if televised_only:
-                fixtures = Filter.only_televised(fixtures)
-
-            team_output_dir = output / league / team_slug
-            team_output_dir.mkdir(parents=True, exist_ok=True)
-
-            fname = f"{team_slug}.{comp_slug}.ics"
-            writer = ICSWriter(fixtures)
-            writer.write(team_output_dir / fname)
-            logger.info(
-                f"Wrote {len(fixtures)} fixtures for team '{t}' to {team_output_dir / fname}"
-            )
-
-            if summarise:
-                changes = diff_changes(fixtures, prev)
-                print(
-                    f"[{t}] fixtures: {len(fixtures)}\n"
-                    f"🔄 Changes since last update: {changes['time']} time, {changes['venue']} venue, {changes['status']} status\n"
-                    f"📺 TV info added: {stats['tv_overrides_applied']}"
-                )
-
-            save_snapshot(fixtures, snap_path)
+            failed.append((t, comp_name))
 
         except (TeamNotFoundError, TeamsCacheError) as e:
-            logger.error(f"Failed to build ICS for team '{t}': {e}")
+            error_msg = str(e)
+            logger.error(f"Failed to build ICS for team '{t}': {error_msg}")
+            failed.append((t, error_msg))
 
         except Exception as e:
-            logger.error(f"Failed to build ICS for team '{t}': {e}")
+            error_msg = str(e)
+            logger.error(f"Failed to build ICS for team '{t}': {error_msg}")
+            failed.append((t, error_msg))
+
+    return {
+        "successful": successful,
+        "failed": failed,
+        "total": len(teams),
+    }
 
 
 def cache_teams(

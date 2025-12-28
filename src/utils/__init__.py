@@ -3,6 +3,7 @@
 from .errors import (
     APIError,
     AuthenticationError,
+    CalendarError,
     ConfigurationError,
     ConnectionError,
     DataProcessingError,
@@ -23,6 +24,7 @@ from .logging import get_logger
 __all__ = [
     "APIError",
     "AuthenticationError",
+    "CalendarError",
     "ConfigurationError",
     "ConnectionError",
     "DataProcessingError",
