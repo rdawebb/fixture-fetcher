@@ -16,27 +16,27 @@ class TestHandleError:
     def test_handle_configuration_error(self):
         """Test handling ConfigurationError returns exit code 1."""
         error = ConfigurationError("Test config error")
-        with patch.object(error, "handle"):
+        with patch.object(error, "handle") as mock_handle:
             result = handle_error(error)
             assert result == 1
-            error.handle.assert_called_once()
+            mock_handle.assert_called_once()
 
     def test_handle_api_error(self):
         """Test handling APIError returns exit code 1."""
         mock_response = Mock()
         error = AuthenticationError("Test auth error", response=mock_response)
-        with patch.object(error, "handle"):
+        with patch.object(error, "handle") as mock_handle:
             result = handle_error(error)
             assert result == 1
-            error.handle.assert_called_once()
+            mock_handle.assert_called_once()
 
     def test_handle_application_error(self):
         """Test handling ApplicationError returns exit code 1."""
         error = ApplicationError("Test app error")
-        with patch.object(error, "handle"):
+        with patch.object(error, "handle") as mock_handle:
             result = handle_error(error)
             assert result == 1
-            error.handle.assert_called_once()
+            mock_handle.assert_called_once()
 
     def test_handle_unknown_exception(self):
         """Test handling unknown exception returns exit code 2."""

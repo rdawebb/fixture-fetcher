@@ -96,6 +96,21 @@ class FDClient:
             if self.cache_path.exists() and self.cache_path.is_dir():
                 logger.error(f"Cache path {self.cache_path} is a directory, not a file")
                 return
+
+            # Validate cache structure before saving
+            if not isinstance(self.cache, dict):
+                logger.error(
+                    f"Invalid cache structure: expected dict, got {type(self.cache).__name__}"
+                )
+                return
+
+            for league, teams in self.cache.items():
+                if not isinstance(teams, dict):
+                    logger.error(
+                        f"Invalid cache structure for league '{league}': expected dict, got {type(teams).__name__}"
+                    )
+                    return
+
             self.cache_path.write_text(yaml.safe_dump(self.cache, sort_keys=True))
             logger.debug(f"Cache saved to {self.cache_path}")
             print(f"💾 Saved team cache to {self.cache_path}")
@@ -103,14 +118,22 @@ class FDClient:
             logger.error(f"Failed to save cache to {self.cache_path}: {e}")
 
     def _add_to_cache(
-        self, league: str, team_name: str, team_id: int, short_name: str = None
+        self,
+        league: str,
+        team_name: str,
+        team_id: int,
+        short_name: str | None = None,
+        venue: str | None = None,
     ) -> None:
         """
         Add a team to the cache and save it.
 
         Args:
+            league: The league name.
             team_name: Name of the team.
             team_id: ID of the team.
+            short_name: Short name of the team.
+            venue: Stadium/venue name for the team.
         """
         if league not in self.cache:
             self.cache[league] = {}
@@ -119,6 +142,8 @@ class FDClient:
             "id": team_id,
             "short_name": short_name or normalised_name,
         }
+        if venue:
+            self.cache[league][normalised_name]["venue"] = venue
         self._save_cache()
 
     def refresh_team_cache(
@@ -184,19 +209,22 @@ class FDClient:
         """
         status = response.status_code
 
-        if status in HTTP_ERROR_MAP:
-            exc_class, log_level = HTTP_ERROR_MAP[status]
-            getattr(logger, log_level)(f"{exc_class.__name__}: {context}")
-            raise exc_class(
-                str(exc_class.__doc__), status_code=status, response=response
-            )
+        if status is not None:
+            if status in HTTP_ERROR_MAP:
+                exc_class, log_level = HTTP_ERROR_MAP[status]
+                getattr(logger, log_level)(f"{exc_class.__name__}: {context}")
+                raise exc_class(
+                    str(exc_class.__doc__), status_code=status, response=response
+                )
 
-        if status >= 500:
-            logger.error(f"ServerError: {context} (status: {status})")
-            raise ServerError("Server error", status_code=status, response=response)
-        elif status >= 400:
-            logger.error(f"UnknownAPIError: {context} (status: {status})")
-            raise UnknownAPIError("API error", status_code=status, response=response)
+            if status >= 500:
+                logger.error(f"ServerError: {context} (status: {status})")
+                raise ServerError("Server error", status_code=status, response=response)
+            elif status >= 400:
+                logger.error(f"UnknownAPIError: {context} (status: {status})")
+                raise UnknownAPIError(
+                    "API error", status_code=status, response=response
+                )
 
         try:
             data = response.json()
@@ -287,6 +315,19 @@ class FDClient:
         """Fetch fixtures for a given team."""
         logger.info(f"Fetching fixtures for team: {team_name}")
         team_id = self.get_team_id_by_name(team_name)
+
+        team_short_name: Optional[str] = None
+        for league, teams in self.cache.items():
+            for cached_team_name, team_info in teams.items():
+                if (
+                    cached_team_name.lower() == team_name.lower()
+                    or team_info["short_name"].lower() == team_name.lower()
+                ):
+                    team_short_name = team_info["short_name"]
+                    break
+            if team_short_name:
+                break
+
         params = {}
 
         if season:
@@ -352,8 +393,20 @@ class FDClient:
 
             home_team = m["homeTeam"]["shortName"]
             away_team = m["awayTeam"]["shortName"]
-            is_home = home_team.lower() == team_name.lower()
-            venue = m.get("venue")
+            is_home = home_team.lower() == team_name.lower() or (
+                team_short_name is not None
+                and home_team.lower() == team_short_name.lower()
+            )
+
+            venue = None
+            home_team_full = m["homeTeam"]["name"]
+            for league, teams in self.cache.items():
+                for cached_team_name, team_info in teams.items():
+                    if cached_team_name.lower() == home_team_full.lower():
+                        venue = team_info.get("venue")
+                        break
+                if venue:
+                    break
 
             fixtures.append(
                 Fixture(

@@ -41,7 +41,12 @@ class TestFDClientCache:
     def test_load_cache_success(self, tmp_path):
         """Test loading cache from file."""
         cache_file = tmp_path / "teams.yaml"
-        cache_data = {"Manchester United": 66, "Liverpool": 64}
+        cache_data = {
+            "Premier League": {
+                "Manchester United": {"id": 66, "short_name": "Man Utd"},
+                "Liverpool": {"id": 64, "short_name": "Liverpool"},
+            }
+        }
         cache_file.write_text(yaml.safe_dump(cache_data))
 
         with patch("src.backend.api.football_data.CACHE_PATH", cache_file):
@@ -64,12 +69,22 @@ class TestFDClientCache:
 
         with patch("src.backend.api.football_data.CACHE_PATH", cache_file):
             client = FDClient()
-            client.cache = {"Team A": 1, "Team B": 2}
+            client.cache = {
+                "Premier League": {
+                    "Team A": {"id": 1, "short_name": "TAM"},
+                    "Team B": {"id": 2, "short_name": "TMB"},
+                }
+            }
             client._save_cache()
 
             assert cache_file.exists()
             loaded_data = yaml.safe_load(cache_file.read_text())
-            assert loaded_data == {"Team A": 1, "Team B": 2}
+            assert loaded_data == {
+                "Premier League": {
+                    "Team A": {"id": 1, "short_name": "TAM"},
+                    "Team B": {"id": 2, "short_name": "TMB"},
+                }
+            }
 
     @patch("src.backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token")
     def test_add_to_cache(self, tmp_path):

@@ -14,7 +14,7 @@ requires-python = ">=3.11"
 license = {text = "MIT"}
 authors = [{name = "rdawebb"}]
 dependencies = [
-    "beaupy>=3.10.2,<4.0.0",
+    "beaupy>=3.11.0,<4.0.0",
     "icalendar>=6.3.2,<7.0.0",
     "pyyaml>=6.0.3,<7.0",
     "python-dotenv>=1.2.1,<2.0.0",
@@ -24,13 +24,16 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
+    "rust-just>=1.45,<2.0.0",
+    "prek>=0.2.27,<1.0.0",
     "pytest>=9.0.2,<10.0.0",
     "pytest-cov>=7.0.0,<8.0.0",
     "pytest-mock>=3.15.1,<4.0.0",
-    "ruff>=0.14.10,<15.0.0",
+    "ruff>=0.14.11,<15.0.0",
+    "ty>=0.0.10,<0.1.0"
 ]
 
 [tool.ruff]
-ignore = [
+lint.ignore = [
     "B008",   # Do not perform function calls in argument defaults (common Typer pattern)
 ]

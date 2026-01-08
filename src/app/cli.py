@@ -234,6 +234,12 @@ def get_team_league(team_name: str, cache_path: Path = CACHE_PATH) -> str:
         )
 
     for league, teams in teams_data.items():
+        # Validate that teams is a dictionary before checking membership
+        if not isinstance(teams, dict):
+            logger.warning(
+                f"Invalid cache structure for league '{league}': expected dict, got {type(teams).__name__}"
+            )
+            continue
         if team_name in teams:
             return league
 

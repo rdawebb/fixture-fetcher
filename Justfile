@@ -6,6 +6,7 @@ help:
     @echo "  just install-dev  - Install dependencies + dev tools"
     @echo "  just lint         - Run ruff linter"
     @echo "  just format       - Format code with ruff"
+    @echo "  just type         - Run ty type checker"
     @echo "  just test         - Run tests"
     @echo "  just test-cov     - Run tests with coverage report"
     @echo "  just run          - Run the CLI app"
@@ -20,10 +21,13 @@ install-dev:
     uv sync --all-extras
 
 lint:
-    ruff check src/ --show-fixes
+    uv run ruff check --fix src/ tests/
 
 format:
-    ruff format src/
+    uv run ruff format src/ tests/
+
+type:
+    uv run ty check src/ tests/
 
 test:
     uv run pytest tests/ -v

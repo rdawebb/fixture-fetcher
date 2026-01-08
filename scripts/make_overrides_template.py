@@ -10,7 +10,7 @@ from src.logic.fixtures.filters import Filter
 team = "Manchester United FC"
 
 repo = FootballDataRepository()
-fixtures = repo.fetch_fixtures(team, ["PL", "FAC"], season=None)
+fixtures = repo.fetch_fixtures(team, ["PL"], season=None)
 fixtures = Filter.apply_filters(fixtures, scheduled_only=True)
 
 output = {}

@@ -1,6 +1,7 @@
 """Command-line interface for the fixture fetcher."""
 
 from pathlib import Path
+from typing import cast
 
 from beaupy import confirm, select, select_multiple
 from beaupy.spinners import DOTS, Spinner
@@ -23,7 +24,9 @@ class CLI:
 
     def welcome_message(self):
         """Display a welcome message."""
-        welcome_message = "⚽️ [bold green]Welcome to the Football Fixture Fetcher![/bold green] ⚽️"
+        welcome_message = (
+            "⚽️ [bold green]Welcome to the Football Fixture Fetcher![/bold green] ⚽️"
+        )
         self.console.print(
             Panel(
                 Align.center(welcome_message),
@@ -41,7 +44,7 @@ class CLI:
             ]
 
             self.console.print("Select a team to fetch fixtures for:")
-            selected_team = select(teams, cursor="> ", cursor_style="cyan")
+            selected_team = cast(str, select(teams, cursor="> ", cursor_style="cyan"))
             self.console.print(f"You selected: {selected_team}")
 
             competitions = [
@@ -49,19 +52,20 @@ class CLI:
             ]
 
             self.console.print("Select competitions to fetch fixtures for:")
-            selected_competition = select_multiple(
-                competitions, tick_character="⚽️", ticked_indices=[0]
+            selected_competition = cast(
+                list[str],
+                select_multiple(competitions, tick_character="⚽️", ticked_indices=[0]),
             )
             self.console.print(f"You selected: {', '.join(selected_competition)}")
 
             spinner = Spinner(DOTS, text="Fetching fixtures...")
             spinner.start()
-            build(team=selected_team, competitions="PL", output=Path("public"))
+            build(
+                team=selected_team, competitions=["PL"], output=Path("public/calendars")
+            )
             spinner.stop()
 
-            success_message = (
-                f"⚽️ [bold green]Successfully fetched fixtures for {selected_team}![/bold green] ⚽️"
-            )
+            success_message = f"⚽️ [bold green]Successfully fetched fixtures for {selected_team}![/bold green] ⚽️"
             self.console.print(
                 Panel(
                     Align.center(success_message),

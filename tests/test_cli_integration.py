@@ -311,7 +311,7 @@ class TestCacheTeamsFunction:
         mock_repo_class.return_value = mock_repo
 
         cache_file = tmp_path / "nested" / "dir" / "teams.yaml"
-        cache_teams(competitions="PL", output=cache_file)
+        cache_teams(competitions=["PL"], output=cache_file)
 
         # The cache file path should be passed to the repository
         call_args = mock_repo.client.refresh_team_cache.call_args
@@ -476,7 +476,7 @@ class TestCLIEndToEnd:
 
         build(
             team="Manchester United",
-            competitions="PL",
+            competitions=["PL"],
             home_only=True,
             output=output_dir,
             cache_dir=cache_dir,

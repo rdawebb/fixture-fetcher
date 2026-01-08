@@ -6,8 +6,6 @@ __pycache__/
 .env
 .token*
 
-README.md
-
 # Cache directories
 .cache/
 .mypy_cache/
@@ -23,8 +21,14 @@ coverage.xml
 .vscode/
 
 # Build artifacts
+build/
+dist/
 fixture_fetcher.egg-info/
 
 # Runtime data (generated, not source)
 data/cache/
 app.log
+public/
+
+# To be committed
+README.md

@@ -51,6 +51,6 @@ def get_logger(
             handlers=[file_handler, stream_handler],
         )
 
-        get_logger._configured = True
+        get_logger._configured = True  # type: ignore[attr-defined]
 
     return logging.getLogger(name)
