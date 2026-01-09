@@ -57,9 +57,9 @@ def save_snapshot(fixtures: List[Fixture], path: Path) -> None:
     snapshot = {f.id: _fixture_to_dict(f) for f in fixtures}
     try:
         path.write_text(json.dumps(snapshot, indent=2, sort_keys=True))
-        logger.info(f"Snapshot saved to {path} with {len(fixtures)} fixtures.")
+        logger.info(f"Snapshot saved successfully with {len(fixtures)} fixtures.")
     except Exception as e:
-        logger.error(f"Failed to save snapshot to {path}: {e}", exc_info=True)
+        logger.error(f"Failed to save snapshot: {e}", exc_info=True)
         raise DataProcessingError("Failed to save snapshot") from e
 
 
@@ -73,12 +73,12 @@ def load_snapshot(path: Path) -> Dict[str, dict]:
         Dict[str, dict]: A dictionary mapping fixture IDs to their snapshot dictionaries.
     """
     if not path.exists():
-        logger.warning(f"Snapshot file {path} does not exist.")
+        logger.warning("Snapshot file does not exist.")
         return {}
     try:
         return cast(Dict[str, dict], json.loads(path.read_text()))
     except json.JSONDecodeError as e:
-        logger.error(f"Error decoding JSON from snapshot file {path}: {e}")
+        logger.error(f"Error decoding JSON from snapshot file: {e}")
         return {}
 
 

@@ -30,5 +30,8 @@ data/cache/
 app.log
 public/
 
+# Dev docs
+docs/
+
 # To be committed
 README.md

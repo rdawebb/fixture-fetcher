@@ -22,7 +22,7 @@ def apply_overrides(fixtures: List[Fixture], overrides_path: Path) -> int:
         int: The number of overrides applied.
     """
     if not overrides_path or not overrides_path.exists():
-        logger.warning(f"Overrides file {overrides_path} does not exist.")
+        logger.warning("Overrides file does not exist")
         return 0
 
     data = yaml.safe_load(overrides_path.read_text()) or {}
@@ -76,9 +76,9 @@ def enrich_all(
     if overrides_path:
         try:
             applied = apply_overrides(fixtures, overrides_path) if overrides_path else 0
-            logger.info(f"Applied overrides from {overrides_path}")
+            logger.info("Applied overrides successfully")
         except Exception as e:
-            logger.error(f"Failed to apply overrides from {overrides_path}: {e}")
+            logger.error(f"Failed to apply overrides: {e}")
 
     after_tv = sum(1 for f in fixtures if (f.tv or "").strip())
 

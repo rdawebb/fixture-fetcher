@@ -20,6 +20,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Enhanced type hints using modern Python union syntax (str | None)
 - Refined shell interaction module for better user experience
 - Updated dependency locks with uv package manager
+- Refactored logging messages to remove file paths for output clarity
+- Enhanced cache auto-loading on missing cache files
+- Improved error handling logic in API response processing
 
 ### Fixed
 

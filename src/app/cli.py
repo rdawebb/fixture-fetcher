@@ -86,7 +86,8 @@ def build(
     comps = [c.strip() for c in competitions if c.strip()] if competitions else []
 
     repo = FootballDataRepository()
-    if refresh_cache:
+
+    if refresh_cache or not CACHE_PATH.exists():
         repo.client.refresh_team_cache()
 
     if not team:
@@ -205,7 +206,7 @@ def cache_teams(
     repo = FootballDataRepository()
     comps = [c.strip() for c in competitions if c.strip()]
     repo.client.refresh_team_cache(comps, cache_path=output)
-    print(f"✅ Cached teams to {output}")
+    print("✅ Cached teams successfully")
 
 
 def get_team_league(team_name: str, cache_path: Path = CACHE_PATH) -> str:

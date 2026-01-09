@@ -83,7 +83,7 @@ class FDClient:
                 logger.info(f"Loaded {num_teams} team IDs from cache")
                 return data
             except yaml.YAMLError as e:
-                logger.error(f"Failed to load cache from {self.cache_path}: {e}")
+                logger.error(f"Failed to load cache: {e}")
                 return {}
         return {}
 
@@ -94,7 +94,7 @@ class FDClient:
         try:
             self.cache_path.parent.mkdir(parents=True, exist_ok=True)
             if self.cache_path.exists() and self.cache_path.is_dir():
-                logger.error(f"Cache path {self.cache_path} is a directory, not a file")
+                logger.error("Cache path is a directory, not a file")
                 return
 
             # Validate cache structure before saving
@@ -112,10 +112,10 @@ class FDClient:
                     return
 
             self.cache_path.write_text(yaml.safe_dump(self.cache, sort_keys=True))
-            logger.debug(f"Cache saved to {self.cache_path}")
-            print(f"💾 Saved team cache to {self.cache_path}")
+            logger.debug("Cache saved successfully")
+            print("💾 Saved team cache successfully")
         except yaml.YAMLError as e:
-            logger.error(f"Failed to save cache to {self.cache_path}: {e}")
+            logger.error(f"Failed to save cache: {e}")
 
     def _add_to_cache(
         self,
@@ -179,7 +179,7 @@ class FDClient:
                         "short_name": team.get("shortName", team["name"]),
                     }
             except Exception as e:
-                logger.error(f"{code} - Failed to refresh team cache: {e}")
+                logger.error(f"Failed to refresh team cache: {e}")
                 raise ConnectionError(
                     f"Failed to refresh team cache for competition {code}: {e}"
                 ) from e
@@ -217,11 +217,11 @@ class FDClient:
                     str(exc_class.__doc__), status_code=status, response=response
                 )
 
-            if status >= 500:
-                logger.error(f"ServerError: {context} (status: {status})")
+            elif status >= 500:
+                logger.error(f"Server error occurred: {status}")
                 raise ServerError("Server error", status_code=status, response=response)
             elif status >= 400:
-                logger.error(f"UnknownAPIError: {context} (status: {status})")
+                logger.error(f"Unknown API error occurred: {status}")
                 raise UnknownAPIError(
                     "API error", status_code=status, response=response
                 )
@@ -362,7 +362,7 @@ class FDClient:
         allowed = set(competitions) if competitions else set(COMP_CODES.keys())
 
         logger.debug(
-            f"Processing {len(matches)} matches, filtering for competitions: {allowed}"
+            f"Processing {len(matches)} matches, filtering for selected competitions"
         )
 
         for m in matches:
