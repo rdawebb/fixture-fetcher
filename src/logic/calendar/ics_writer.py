@@ -5,9 +5,9 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Iterable
 
-from src.logic.calendar.builder import CalendarBuilder
-from src.logic.fixtures.models import Fixture
-from src.utils import ICSWriteError, get_logger
+from logic.calendar.builder import CalendarBuilder
+from logic.fixtures.models import Fixture
+from utils import ICSWriteError, get_logger
 
 logger = get_logger(__name__)
 

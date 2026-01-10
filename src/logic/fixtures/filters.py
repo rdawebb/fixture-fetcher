@@ -5,8 +5,8 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Iterable, List
 
-from src.logic.fixtures.models import Fixture
-from src.utils import DataProcessingError, InvalidInputError, get_logger
+from logic.fixtures.models import Fixture
+from utils import DataProcessingError, InvalidInputError, get_logger
 
 logger = get_logger(__name__)
 

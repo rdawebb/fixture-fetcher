@@ -1,7 +1,7 @@
 # Justfile for fixture-fetcher
 
 help:
-    @printf "\nAvailable commands:\n\n  just install      - Install dependencies\n  just install-dev  - Install dependencies + dev tools\n  just lint         - Run ruff linter\n  just format       - Format code with ruff\n  just type         - Run ty type checker\n  just check        - Run all checks\n  just test         - Run tests\n  just test-cov     - Run tests with coverage report\n  just run          - Run the CLI app\n  just overrides    - Generate overrides template\n  just cache        - Update the team cache\n  just clean        - Remove cache and temporary files\n\n"
+    @printf "\nAvailable commands:\n\n  just install      - Install dependencies\n  just install-dev  - Install dependencies + dev tools\n  just lint         - Run ruff linter\n  just format       - Format code with ruff\n  just type         - Run ty type checker\n  just check        - Run all checks\n  just test         - Run tests\n  just test-cov     - Run tests with coverage report\n  just pre          - Run pre-commit checks\n  just run          - Run the CLI app\n  just overrides    - Generate overrides template\n  just cache        - Update the team cache\n  just clean        - Remove cache and temporary files\n\n"
 
 install:
     uv pip install -e .
@@ -28,6 +28,9 @@ test:
 
 test-cov:
     uv run pytest tests/ --cov=src --cov-report=html --cov-report=term
+
+pre:
+    uv run prek run --all-files
 
 run:
     uv run python -m src.app.shell

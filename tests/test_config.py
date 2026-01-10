@@ -4,8 +4,8 @@ from unittest.mock import patch
 
 import pytest
 
-from src.backend.config import validate_config
-from src.utils.errors import ConfigurationError
+from backend.config import validate_config
+from utils.errors import ConfigurationError
 
 
 class TestConfig:
@@ -13,12 +13,12 @@ class TestConfig:
 
     def test_validate_config_success(self):
         """Test that validate_config passes with valid config."""
-        with patch("src.backend.config.FOOTBALL_DATA_API_TOKEN", "test_token"):
+        with patch("backend.config.FOOTBALL_DATA_API_TOKEN", "test_token"):
             validate_config()
 
     def test_validate_config_missing_token(self):
         """Test that validate_config fails without API token."""
-        with patch("src.backend.config.FOOTBALL_DATA_API_TOKEN", ""):
+        with patch("backend.config.FOOTBALL_DATA_API_TOKEN", ""):
             with pytest.raises(ConfigurationError) as exc_info:
                 validate_config()
 

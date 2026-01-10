@@ -4,8 +4,8 @@ from pathlib import Path
 
 import yaml
 
-from src.backend import FootballDataRepository
-from src.logic.fixtures.filters import Filter
+from backend import FootballDataRepository
+from logic.fixtures.filters import Filter
 
 team = "Manchester United FC"
 

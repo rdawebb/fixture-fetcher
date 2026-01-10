@@ -1,7 +1,7 @@
 """Centralised error handling for the application."""
 
-from src.utils.errors import APIError, ApplicationError, ConfigurationError
-from src.utils.logging import get_logger
+from utils.errors import APIError, ApplicationError, ConfigurationError
+from utils.logging import get_logger
 
 logger = get_logger(__name__)
 

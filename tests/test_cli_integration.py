@@ -6,51 +6,41 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from src.app.cli import _slug, build, cache_teams
-from src.logic.fixtures.models import Fixture
-from src.utils.errors import InvalidInputError
+from app.cli import _slug, build, cache_teams
+from logic.fixtures.models import Fixture
+from utils.errors import InvalidInputError, TeamNotFoundError
 
 
 class TestSlugFunction:
     """Tests for the _slug helper function."""
 
-    def test_slug_simple_name(self):
-        """Test slugifying a simple team name."""
-        assert _slug("Manchester United") == "manchester-united"
-
-    def test_slug_with_special_chars(self):
-        """Test slugifying a name with special characters."""
-        assert _slug("Real Madrid CF") == "real-madrid-cf"
-
-    def test_slug_already_slug(self):
-        """Test slugifying an already slugified name."""
-        assert _slug("manchester-united") == "manchester-united"
-
-    def test_slug_with_apostrophe(self):
-        """Test slugifying a name with apostrophe."""
-        # The slug function keeps each non-alphanumeric as a dash
-        assert _slug("St. Mary's") == "st--mary-s"
-
-    def test_slug_empty_string(self):
-        """Test slugifying an empty string."""
-        assert _slug("") == ""
-
-    def test_slug_only_special_chars(self):
-        """Test slugifying a string with only special characters."""
-        assert _slug("!!!") == ""
+    @pytest.mark.parametrize(
+        "input_name,expected_slug",
+        [
+            ("Manchester United", "manchester-united"),
+            ("Real Madrid CF", "real-madrid-cf"),
+            ("manchester-united", "manchester-united"),
+            ("St. Mary's", "st--mary-s"),
+            ("", ""),
+            ("!!!", ""),
+        ],
+    )
+    def test_slug(self, input_name, expected_slug):
+        """Test slugifying various team names."""
+        assert _slug(input_name) == expected_slug
 
 
 class TestBuildFunction:
     """Integration tests for the build function."""
 
-    @patch("src.app.cli.get_team_league")
-    @patch("src.app.cli.FootballDataRepository")
-    def test_build_with_team(self, mock_repo_class, mock_get_team_league, tmp_path):
+    @patch("app.cli.get_team_info")
+    @patch("app.cli.FootballDataRepository")
+    def test_build_with_team(self, mock_repo_class, mock_get_team_info, tmp_path):
         """Test building ICS file for a specific team."""
         # Setup mock repository and fixtures
         mock_repo = Mock()
         mock_repo_class.return_value = mock_repo
-        mock_get_team_league.return_value = "Premier League"
+        mock_get_team_info.return_value = ("Premier League", "Man Utd")
 
         fixture = Fixture(
             id="1",
@@ -83,7 +73,7 @@ class TestBuildFunction:
         ics_files = list(output_dir.rglob("*.ics"))
         assert len(ics_files) > 0
 
-    @patch("src.app.cli.FootballDataRepository")
+    @patch("app.cli.FootballDataRepository")
     def test_build_no_team_specified(self, mock_repo_class, tmp_path):
         """Test build function raises error when no team specified."""
         mock_repo = Mock()
@@ -98,13 +88,13 @@ class TestBuildFunction:
         # Repository should not be called when no team is specified
         mock_repo.fetch_fixtures.assert_not_called()
 
-    @patch("src.app.cli.get_team_league")
-    @patch("src.app.cli.FootballDataRepository")
-    def test_build_with_filters(self, mock_repo_class, mock_get_team_league, tmp_path):
+    @patch("app.cli.get_team_info")
+    @patch("app.cli.FootballDataRepository")
+    def test_build_with_filters(self, mock_repo_class, mock_get_team_info, tmp_path):
         """Test build function applies filters correctly."""
         mock_repo = Mock()
         mock_repo_class.return_value = mock_repo
-        mock_get_team_league.return_value = "Premier League"
+        mock_get_team_info.return_value = ("Premier League", "Man Utd")
 
         # Create multiple fixtures with different properties
         fixtures = [
@@ -150,15 +140,15 @@ class TestBuildFunction:
         ics_files = list(output_dir.rglob("*.ics"))
         assert len(ics_files) > 0
 
-    @patch("src.app.cli.get_team_league")
-    @patch("src.app.cli.FootballDataRepository")
+    @patch("app.cli.get_team_info")
+    @patch("app.cli.FootballDataRepository")
     def test_build_with_competitions_filter(
-        self, mock_repo_class, mock_get_team_league, tmp_path
+        self, mock_repo_class, mock_get_team_info, tmp_path
     ):
         """Test build function with competition filter."""
         mock_repo = Mock()
         mock_repo_class.return_value = mock_repo
-        mock_get_team_league.return_value = "Premier League"
+        mock_get_team_info.return_value = ("Premier League", "Man Utd")
 
         fixture = Fixture(
             id="1",
@@ -189,7 +179,7 @@ class TestBuildFunction:
         assert "PL" in call_args[1]
         assert "CL" in call_args[1]
 
-    @patch("src.app.cli.FootballDataRepository")
+    @patch("app.cli.FootballDataRepository")
     def test_build_with_refresh_cache(self, mock_repo_class, tmp_path):
         """Test build function with refresh cache option."""
         mock_repo = Mock()
@@ -208,7 +198,7 @@ class TestBuildFunction:
         # Verify refresh_team_cache was called
         mock_repo.client.refresh_team_cache.assert_called_once()
 
-    @patch("src.app.cli.FootballDataRepository")
+    @patch("app.cli.FootballDataRepository")
     def test_build_creates_output_directory(self, mock_repo_class, tmp_path):
         """Test build function creates output directory if it doesn't exist."""
         mock_repo = Mock()
@@ -224,7 +214,7 @@ class TestBuildFunction:
         # Output directory should be created
         assert output_dir.exists()
 
-    @patch("src.app.cli.FootballDataRepository")
+    @patch("app.cli.FootballDataRepository")
     def test_build_error_handling(self, mock_repo_class, tmp_path):
         """Test build function handles errors gracefully."""
         mock_repo = Mock()
@@ -237,7 +227,7 @@ class TestBuildFunction:
         # Should not raise, but log error
         build(team="Manchester United", output=output_dir, cache_dir=cache_dir)
 
-    @patch("src.app.cli.FootballDataRepository")
+    @patch("app.cli.FootballDataRepository")
     def test_build_no_summarise(self, mock_repo_class, tmp_path):
         """Test build function with summarise disabled."""
         mock_repo = Mock()
@@ -274,7 +264,7 @@ class TestBuildFunction:
 class TestCacheTeamsFunction:
     """Integration tests for the cache_teams function."""
 
-    @patch("src.app.cli.FootballDataRepository")
+    @patch("app.cli.FootballDataRepository")
     def test_cache_teams_single_competition(self, mock_repo_class, tmp_path):
         """Test caching teams for a single competition."""
         mock_repo = Mock()
@@ -288,7 +278,7 @@ class TestCacheTeamsFunction:
         assert call_args[0][0] == ["PL"]
         assert call_args[1]["cache_path"] == cache_file
 
-    @patch("src.app.cli.FootballDataRepository")
+    @patch("app.cli.FootballDataRepository")
     def test_cache_teams_multiple_competitions(self, mock_repo_class, tmp_path):
         """Test caching teams for multiple competitions."""
         mock_repo = Mock()
@@ -304,7 +294,7 @@ class TestCacheTeamsFunction:
         assert "CL" in comps
         assert "FA" in comps
 
-    @patch("src.app.cli.FootballDataRepository")
+    @patch("app.cli.FootballDataRepository")
     def test_cache_teams_creates_parent_directory(self, mock_repo_class, tmp_path):
         """Test cache_teams creates parent directory if needed."""
         mock_repo = Mock()
@@ -328,7 +318,7 @@ class TestCLIClass:
 
     def test_cli_initialization(self):
         """Test CLI class can be initialized."""
-        from src.app.shell import CLI
+        from app.shell import CLI
 
         cli = CLI()
         assert cli.console is not None
@@ -336,7 +326,7 @@ class TestCLIClass:
 
     def test_cli_welcome_message(self):
         """Test welcome message can be rendered."""
-        from src.app.shell import CLI
+        from app.shell import CLI
 
         cli = CLI()
         # Should not raise
@@ -345,15 +335,15 @@ class TestCLIClass:
         except Exception as e:
             pytest.fail(f"welcome_message raised {e}")
 
-    @patch("src.app.shell.confirm")
-    @patch("src.app.shell.select")
-    @patch("src.app.shell.select_multiple")
-    @patch("src.app.shell.build")
+    @patch("app.shell.confirm")
+    @patch("app.shell.select")
+    @patch("app.shell.select_multiple")
+    @patch("app.shell.build")
     def test_cli_interactive_prompt_confirmed(
         self, mock_build, mock_select_multiple, mock_select, mock_confirm
     ):
         """Test CLI interactive prompt when user confirms."""
-        from src.app.shell import CLI
+        from app.shell import CLI
 
         # Setup mocks
         mock_confirm.return_value = True
@@ -366,10 +356,10 @@ class TestCLIClass:
         # Verify build was called
         mock_build.assert_called_once()
 
-    @patch("src.app.shell.confirm")
+    @patch("app.shell.confirm")
     def test_cli_interactive_prompt_declined(self, mock_confirm):
         """Test CLI interactive prompt when user declines."""
-        from src.app.shell import CLI
+        from app.shell import CLI
 
         mock_confirm.return_value = False
 
@@ -379,15 +369,15 @@ class TestCLIClass:
         # Build should not be called
         # (Need to patch build to verify, but it shouldn't be reached)
 
-    @patch("src.app.shell.confirm")
-    @patch("src.app.shell.select")
-    @patch("src.app.shell.select_multiple")
-    @patch("src.app.shell.build")
+    @patch("app.shell.confirm")
+    @patch("app.shell.select")
+    @patch("app.shell.select_multiple")
+    @patch("app.shell.build")
     def test_cli_interactive_prompt_with_build_error(
         self, mock_build, mock_select_multiple, mock_select, mock_confirm
     ):
         """Test CLI handles errors during build gracefully."""
-        from src.app.shell import CLI
+        from app.shell import CLI
 
         mock_confirm.return_value = True
         mock_select.return_value = "Manchester United FC"
@@ -401,7 +391,7 @@ class TestCLIClass:
 
     def test_cli_welcome_message_renders(self):
         """Test that welcome message renders without error."""
-        from src.app.shell import CLI
+        from app.shell import CLI
 
         cli = CLI()
         # Create a mock console to avoid printing
@@ -410,16 +400,16 @@ class TestCLIClass:
             # Verify print was called
             mock_console.print.assert_called_once()
 
-    @patch("src.app.shell.confirm")
-    @patch("src.app.shell.select")
-    @patch("src.app.shell.select_multiple")
-    @patch("src.app.shell.Spinner")
-    @patch("src.app.shell.build")
+    @patch("app.shell.confirm")
+    @patch("app.shell.select")
+    @patch("app.shell.select_multiple")
+    @patch("app.shell.Spinner")
+    @patch("app.shell.build")
     def test_cli_full_interactive_flow(
         self, mock_build, mock_spinner, mock_select_multiple, mock_select, mock_confirm
     ):
         """Test full interactive flow with all UI elements."""
-        from src.app.shell import CLI
+        from app.shell import CLI
 
         mock_confirm.return_value = True
         mock_select.return_value = "Manchester United FC"
@@ -443,16 +433,16 @@ class TestCLIEndToEnd:
     ICS file generation.
     """
 
-    @patch("src.app.cli.get_team_league")
-    @patch("src.app.cli.FootballDataRepository")
+    @patch("app.cli.get_team_info")
+    @patch("app.cli.FootballDataRepository")
     def test_full_workflow_build_and_export(
-        self, mock_repo_class, mock_get_team_league, tmp_path
+        self, mock_repo_class, mock_get_team_info, tmp_path
     ):
         """Test complete workflow of building ICS files."""
         # Setup mock data
         mock_repo = Mock()
         mock_repo_class.return_value = mock_repo
-        mock_get_team_league.return_value = "Premier League"
+        mock_get_team_info.return_value = ("Premier League", "Man Utd")
 
         fixture = Fixture(
             id="1",
@@ -494,7 +484,7 @@ class TestCLIEndToEnd:
         assert "Liverpool" in content
         assert "BEGIN:VCALENDAR" in content
 
-    @patch("src.app.cli.FootballDataRepository")
+    @patch("app.cli.FootballDataRepository")
     def test_workflow_with_snapshot(self, mock_repo_class, tmp_path):
         """Test workflow that saves and uses snapshots for change detection."""
         mock_repo = Mock()
@@ -520,7 +510,7 @@ class TestCLIEndToEnd:
         cache_dir = tmp_path / "cache"
         cache_dir.mkdir()
 
-        with patch("src.app.cli.Path") as mock_path:
+        with patch("app.cli.Path") as mock_path:
             # Mock the cache path to use our temp directory
             mock_path.side_effect = (
                 lambda p: Path(cache_dir) / p if isinstance(p, str) else Path(p)
@@ -535,15 +525,13 @@ class TestCLIEndToEnd:
             # First run creates snapshot
             # Second run would compare against snapshot
 
-    @patch("src.app.cli.get_team_league")
-    @patch("src.app.cli.FootballDataRepository")
-    def test_build_error_on_enrich(
-        self, mock_repo_class, mock_get_team_league, tmp_path
-    ):
+    @patch("app.cli.get_team_info")
+    @patch("app.cli.FootballDataRepository")
+    def test_build_error_on_enrich(self, mock_repo_class, mock_get_team_info, tmp_path):
         """Test build handles errors during enrich_all."""
         mock_repo = Mock()
         mock_repo_class.return_value = mock_repo
-        mock_get_team_league.return_value = "Premier League"
+        mock_get_team_info.return_value = ("Premier League", "Man Utd")
 
         fixture = Fixture(
             id="1",
@@ -563,7 +551,7 @@ class TestCLIEndToEnd:
         output_dir = tmp_path / "output"
         cache_dir = tmp_path / "cache"
 
-        with patch("src.app.cli.enrich_all") as mock_enrich:
+        with patch("app.cli.enrich_all") as mock_enrich:
             mock_enrich.side_effect = Exception("Enrichment failed")
 
             result = build(
@@ -575,15 +563,15 @@ class TestCLIEndToEnd:
         # Should handle error gracefully and return failed entry
         assert len(result["failed"]) > 0
 
-    @patch("src.app.cli.get_team_league")
-    @patch("src.app.cli.FootballDataRepository")
+    @patch("app.cli.get_team_info")
+    @patch("app.cli.FootballDataRepository")
     def test_build_with_all_filters(
-        self, mock_repo_class, mock_get_team_league, tmp_path
+        self, mock_repo_class, mock_get_team_info, tmp_path
     ):
         """Test build function with all filter options enabled."""
         mock_repo = Mock()
         mock_repo_class.return_value = mock_repo
-        mock_get_team_league.return_value = "Premier League"
+        mock_get_team_info.return_value = ("Premier League", "Man Utd")
 
         fixture = Fixture(
             id="1",
@@ -616,15 +604,17 @@ class TestCLIEndToEnd:
         assert output_dir.exists()
         assert len(result["successful"]) > 0
 
-    @patch("src.app.cli.get_team_league")
-    @patch("src.app.cli.FootballDataRepository")
-    def test_build_get_team_league_not_found(
-        self, mock_repo_class, mock_get_team_league, tmp_path
+    @patch("app.cli.get_team_info")
+    @patch("app.cli.FootballDataRepository")
+    def test_build_get_team_info_not_found(
+        self, mock_repo_class, mock_get_team_info, tmp_path
     ):
         """Test build when team is not found in league cache."""
         mock_repo = Mock()
         mock_repo_class.return_value = mock_repo
-        mock_get_team_league.side_effect = Exception("Team not found")
+        mock_get_team_info.side_effect = TeamNotFoundError(
+            "Team not found", context={"team_name": "Unknown Team"}
+        )
 
         output_dir = tmp_path / "output"
         cache_dir = tmp_path / "cache"
@@ -638,7 +628,7 @@ class TestCLIEndToEnd:
         # Should handle error and add to failed list
         assert len(result["failed"]) > 0
 
-    @patch("src.app.cli.FootballDataRepository")
+    @patch("app.cli.FootballDataRepository")
     def test_cache_teams_with_whitespace(self, mock_repo_class, tmp_path):
         """Test cache_teams strips whitespace from competition codes."""
         mock_repo = Mock()
@@ -651,7 +641,7 @@ class TestCLIEndToEnd:
         call_args = mock_repo.client.refresh_team_cache.call_args
         assert call_args[0][0] == ["PL", "CL", "FA"]
 
-    @patch("src.app.cli.FootballDataRepository")
+    @patch("app.cli.FootballDataRepository")
     def test_cache_teams_empty_strings_filtered(self, mock_repo_class, tmp_path):
         """Test cache_teams filters out empty competition codes."""
         mock_repo = Mock()

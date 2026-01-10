@@ -3,7 +3,7 @@
 import os
 from pathlib import Path
 
-from src.logic.calendar.compare import CalendarComparison
+from logic.calendar.compare import CalendarComparison
 
 if __name__ == "__main__":
     old_dir = Path("public-old/calendars")

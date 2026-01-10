@@ -2,8 +2,8 @@
 
 from icalendar import Calendar
 
-from src.logic.calendar.ics_writer import ICSWriter
-from src.logic.fixtures.models import Fixture
+from logic.calendar.ics_writer import ICSWriter
+from logic.fixtures.models import Fixture
 
 
 class TestICSWriter:
@@ -98,7 +98,7 @@ class TestICSWriter:
 
     def test_uid_generation(self, sample_fixture):
         """Test UID generation for events."""
-        from src.logic.calendar.formatter import EventFormatter
+        from logic.calendar.formatter import EventFormatter
 
         formatter = EventFormatter()
         uid = formatter._uid(sample_fixture)

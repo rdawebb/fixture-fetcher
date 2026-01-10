@@ -5,13 +5,13 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Optional
 
-from src.backend import FootballDataRepository
-from src.backend.config import get_config
-from src.backend.storage.snapshot import diff_changes, load_snapshot, save_snapshot
-from src.logic.calendar.ics_writer import ICSWriter
-from src.logic.fixtures.enrich import enrich_all
-from src.logic.fixtures.filters import Filter
-from src.utils import (
+from backend import FootballDataRepository
+from backend.config import get_config
+from backend.storage.snapshot import diff_changes, load_snapshot, save_snapshot
+from logic.calendar.ics_writer import ICSWriter
+from logic.fixtures.enrich import enrich_all
+from logic.fixtures.filters import Filter
+from utils import (
     get_logger,
     CalendarError,
     InvalidInputError,
@@ -91,7 +91,7 @@ def build(
         repo.client.refresh_team_cache()
 
     if not team:
-        raise InvalidInputError("Team must be specified.")
+        raise InvalidInputError("Team must be specified")
     teams = [team]
 
     successful = []
@@ -99,8 +99,15 @@ def build(
 
     for t in teams:
         try:
-            league = get_team_league(t)
-            team_slug = _slug(t)
+            league, short_name = get_team_info(t)
+        except (TeamNotFoundError, TeamsCacheError) as e:
+            error_msg = str(e)
+            logger.error(f"Failed to build ICS for team '{t}': {error_msg}")
+            failed.append((t, error_msg))
+            continue
+
+        try:
+            league_slug = _slug(league)
 
             fixtures = repo.fetch_fixtures(t, comps, season)
             fixtures = Filter.apply_filters(fixtures, scheduled_only=True)
@@ -115,20 +122,21 @@ def build(
             for comp_code, comp_fixtures in fixtures_by_comp.items():
                 if not comp_fixtures:
                     logger.warning(
-                        f"No fixtures found for competition '{comp_code}' for team '{t}', skipping."
+                        f"No '{comp_code}' fixtures found for '{short_name}', skipping..."
                     )
                     continue
 
                 try:
                     comp_name = comp_fixtures[0].competition
-                    comp_slug = _slug(comp_name)
+                    team_slug = _slug(short_name)
+                    comp_code_slug = _slug(comp_code)
 
                     snap_path = (
                         cache_dir
                         / "snapshots"
-                        / league
+                        / league_slug
                         / team_slug
-                        / f"{team_slug}.{comp_slug}.json"
+                        / f"{team_slug}.{comp_code_slug}.json"
                     )
                     prev = load_snapshot(snap_path)
 
@@ -142,21 +150,21 @@ def build(
                     if televised_only:
                         filtered_fixtures = Filter.only_televised(filtered_fixtures)
 
-                    team_output_dir = output / league / team_slug
+                    team_output_dir = output / league_slug / team_slug
                     team_output_dir.mkdir(parents=True, exist_ok=True)
 
-                    fname = f"{team_slug}.{comp_slug}.ics"
+                    fname = f"{team_slug}.{comp_code_slug}.ics"
                     writer = ICSWriter(filtered_fixtures)
                     output_file = writer.write(team_output_dir / fname)
                     logger.info(
-                        f"Wrote {len(filtered_fixtures)} fixtures for team '{t}' in {comp_name} to {output_file}"
+                        f"Wrote {len(filtered_fixtures)} fixtures for team '{short_name}' in {comp_code} to {output_file}"
                     )
-                    successful.append((t, comp_name))
+                    successful.append((short_name, comp_code))
 
                     if summarise:
                         changes = diff_changes(comp_fixtures, prev)
                         print(
-                            f"[{t}] - {comp_name} fixtures: {len(comp_fixtures)}\n"
+                            f"[{short_name}] - {comp_code} fixtures: {len(comp_fixtures)}\n"
                             f"🔄 Changes since last update: {changes['time']} time, {changes['venue']} venue, {changes['status']} status\n"
                             f"📺 TV info added: {stats['tv_overrides_applied']}"
                         )
@@ -166,25 +174,24 @@ def build(
                 except Exception as e:
                     raise CalendarError(
                         f"Failed to build calendar for {comp_name}",
-                        context={"team": t, "competition": comp_name, "error": str(e)},
+                        context={
+                            "team": short_name,
+                            "competition": comp_name,
+                            "error": str(e),
+                        },
                     ) from e
 
         except CalendarError as e:
             error_msg = str(e)
             logger.error(
-                f"Failed to build ICS for team '{t}' in {comp_name}: {error_msg}"
+                f"Failed to build ICS for team '{short_name}' in {comp_name}: {error_msg}"
             )
-            failed.append((t, comp_name))
-
-        except (TeamNotFoundError, TeamsCacheError) as e:
-            error_msg = str(e)
-            logger.error(f"Failed to build ICS for team '{t}': {error_msg}")
-            failed.append((t, error_msg))
+            failed.append((short_name, comp_code))
 
         except Exception as e:
             error_msg = str(e)
-            logger.error(f"Failed to build ICS for team '{t}': {error_msg}")
-            failed.append((t, error_msg))
+            logger.error(f"Failed to build ICS for team '{short_name}': {error_msg}")
+            failed.append((short_name, error_msg))
 
     return {
         "successful": successful,
@@ -209,15 +216,15 @@ def cache_teams(
     print("✅ Cached teams successfully")
 
 
-def get_team_league(team_name: str, cache_path: Path = CACHE_PATH) -> str:
-    """Get the primary league for a given team.
+def get_team_info(team_name: str, cache_path: Path = CACHE_PATH) -> tuple[str, str]:
+    """Get the primary league and short name for a given team.
 
     Args:
         team_name (str): Name of the team.
         cache_path (Path): Path to the team cache file.
 
     Returns:
-        str: The primary league of the team.
+        tuple[str, str]: The primary league and short name of the team.
 
     Raises:
         TeamNotFoundError: If the team is not found in the cache.
@@ -235,14 +242,22 @@ def get_team_league(team_name: str, cache_path: Path = CACHE_PATH) -> str:
         )
 
     for league, teams in teams_data.items():
-        # Validate that teams is a dictionary before checking membership
         if not isinstance(teams, dict):
             logger.warning(
                 f"Invalid cache structure for league '{league}': expected dict, got {type(teams).__name__}"
             )
             continue
         if team_name in teams:
-            return league
+            team_info = teams[team_name]
+            short_name = team_name  # Default to team_name
+            if isinstance(team_info, dict) and "short_name" in team_info:
+                short_name = team_info["short_name"]
+            else:
+                logger.warning(
+                    f"No short name found for team '{team_name}' in league '{league}'"
+                )
+
+            return league, short_name
 
     raise TeamNotFoundError(
         f"Team '{team_name}' not found in cache",

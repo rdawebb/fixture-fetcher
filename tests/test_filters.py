@@ -5,37 +5,48 @@ from unittest.mock import Mock
 
 import pytest
 
-from src.logic.fixtures.filters import Filter
-from src.logic.fixtures.models import Fixture
-from src.utils.errors import DataProcessingError, InvalidInputError
+from logic.fixtures.filters import Filter
+from logic.fixtures.models import Fixture
+from utils.errors import DataProcessingError, InvalidInputError
 
 
 class TestFilter:
     """Tests for the Filter class."""
 
-    def test_only_home(self, sample_fixtures):
-        """Test filtering only home fixtures."""
-        result = Filter.only_home(sample_fixtures)
-        assert len(result) == 2
-        assert all(f.is_home for f in result)
-
-    def test_only_away(self, sample_fixtures):
-        """Test filtering only away fixtures."""
-        result = Filter.only_away(sample_fixtures)
-        assert len(result) == 2
-        assert all(not f.is_home for f in result)
-
-    def test_only_scheduled(self, sample_fixtures):
-        """Test filtering only scheduled fixtures."""
-        result = Filter.only_scheduled(sample_fixtures)
-        assert len(result) == 3
-        assert all(f.status in ("SCHEDULED", "TIMED") for f in result)
-
-    def test_only_televised(self, sample_fixtures):
-        """Test filtering only televised fixtures."""
-        result = Filter.only_televised(sample_fixtures)
-        assert len(result) == 2
-        assert all(f.tv is not None for f in result)
+    @pytest.mark.parametrize(
+        "filter_method,expected_count,assertion_func",
+        [
+            (
+                lambda f: Filter.only_home(f),
+                2,
+                lambda results: all(r.is_home for r in results),
+            ),
+            (
+                lambda f: Filter.only_away(f),
+                2,
+                lambda results: all(not r.is_home for r in results),
+            ),
+            (
+                lambda f: Filter.only_scheduled(f),
+                3,
+                lambda results: all(
+                    r.status in ("SCHEDULED", "TIMED") for r in results
+                ),
+            ),
+            (
+                lambda f: Filter.only_televised(f),
+                2,
+                lambda results: all(r.tv is not None for r in results),
+            ),
+        ],
+    )
+    def test_basic_filters(
+        self, sample_fixtures, filter_method, expected_count, assertion_func
+    ):
+        """Test basic single-attribute filters."""
+        result = filter_method(sample_fixtures)
+        assert len(result) == expected_count
+        assert assertion_func(result)
 
     def test_by_competition(self, sample_fixtures):
         """Test filtering by competition code."""

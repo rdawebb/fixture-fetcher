@@ -5,8 +5,8 @@ from typing import List, Optional
 
 import yaml
 
-from src.logic.fixtures.models import Fixture
-from src.utils import get_logger
+from logic.fixtures.models import Fixture
+from utils import get_logger
 
 logger = get_logger(__name__)
 

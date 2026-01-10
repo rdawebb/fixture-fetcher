@@ -27,7 +27,7 @@ fixture_fetcher.egg-info/
 
 # Runtime data (generated, not source)
 data/cache/
-app.log
+logs/
 public/
 
 # Dev docs

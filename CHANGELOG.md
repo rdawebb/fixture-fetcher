@@ -5,14 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [Unreleased]
+## [0.3.0] - 2026/01/10
 
 ### Added
 
+- Manifest generation module for calendar indexing
 - Pre-commit configuration for code quality checks
 - Enhanced API client with venue information support in team cache
 - Improved cache validation with structure checking before save operations
 - Better error handling for invalid cache structures
+- Text fixtures for API and storage modules
+- Static stylesheet for web interface
 
 ### Changed
 
@@ -23,6 +26,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Refactored logging messages to remove file paths for output clarity
 - Enhanced cache auto-loading on missing cache files
 - Improved error handling logic in API response processing
+- Simplified import paths throughout codebase
+- Refactored test suite with parameterisation for better maintainability
+- Improved test coverage for Football Data API client and error handling
 
 ### Fixed
 
@@ -72,5 +78,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 
 [Unreleased]: https://github.com/rdawebb/fixture-fetcher/compare/v0.2.0...HEAD
+[0.3.0]: https://github.com/rdawebb/fixture-fetcher/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/rdawebb/fixture-fetcher/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/rdawebb/fixture-fetcher/releases/tag/v0.1.0

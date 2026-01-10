@@ -61,13 +61,23 @@ jobs:
       - name: Copy static files
         run: cp -r static/* public/
 
-      - name: Check for calendar changes
+      - name: Check for calendar or static file changes
         id: changes
         if: success()
         env:
           PYTHONPATH: ${{ github.workspace }}
         run: |
           uv run scripts/compare_calendars.py
+
+          if [ -d "public-old" ]; then
+            if diff -r static/ public-old/ > /dev/null 2>&1; then
+              echo "static_changed=false" >> $GITHUB_OUTPUT
+            else
+              echo "static_changed=true" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "static_changed=true" >> $GITHUB_OUTPUT
+          fi
 
       - name: Save cache
         uses: actions/cache@v4
@@ -76,7 +86,7 @@ jobs:
           key: team-cache-${{ runner.os }}
 
       - name: Deploy to GitHub Pages
-        if: success() && steps.changes.outputs.has_changes == 'true'
+        if: success() && (steps.changes.outputs.has_changes == 'true' || steps.changes.outputs.static_changed == 'true')
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}

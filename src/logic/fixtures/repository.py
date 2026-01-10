@@ -2,7 +2,7 @@
 
 from typing import List, Optional, Protocol
 
-from src.logic.fixtures.models import Fixture
+from logic.fixtures.models import Fixture
 
 
 class FixtureRepository(Protocol):

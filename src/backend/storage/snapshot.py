@@ -7,8 +7,8 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Dict, List, Tuple, cast
 
-from src.logic.fixtures.models import Fixture
-from src.utils import DataProcessingError, get_logger
+from logic.fixtures.models import Fixture
+from utils import DataProcessingError, get_logger
 
 logger = get_logger(__name__)
 

@@ -6,7 +6,7 @@ from typing import Set
 
 from icalendar import Calendar
 
-from src.utils import DataProcessingError, ICSReadError, get_logger
+from utils import DataProcessingError, ICSReadError, get_logger
 
 logger = get_logger(__name__)
 

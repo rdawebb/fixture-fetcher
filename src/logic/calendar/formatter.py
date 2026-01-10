@@ -5,7 +5,7 @@ from datetime import timedelta
 from icalendar import Event
 from zoneinfo import ZoneInfo
 
-from src.logic.fixtures.models import Fixture
+from logic.fixtures.models import Fixture
 
 LONDON_TZ = ZoneInfo("Europe/London")
 

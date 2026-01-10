@@ -9,9 +9,9 @@ from typing import Any, Optional, cast
 import requests
 import yaml
 
-from src.backend.config import get_config
-from src.logic.fixtures.models import Fixture
-from src.utils.errors import (
+from backend.config import get_config
+from logic.fixtures.models import Fixture
+from utils.errors import (
     AuthenticationError,
     ConnectionError,
     NotFoundError,
@@ -22,7 +22,7 @@ from src.utils.errors import (
     TimeoutError,
     UnknownAPIError,
 )
-from src.utils.logging import get_logger
+from utils.logging import get_logger
 
 logger = get_logger(__name__)
 
