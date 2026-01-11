@@ -2,21 +2,76 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>Fixture Calendars</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Fixture Fetcher</title>
+    <link rel="stylesheet" href="style.css">
   </head>
   <body>
-    <h1>Fixture subscription calendars</h1>
+    <h1>🗓️ Fixture Fetcher ⚽️</h1>
 
-    <h2>Premier League</h2>
-    <ul>
-      <li>
-        <a href="calendars/manchester-united-fc/premier-league/manchester-united-fc.premier-league.ics">Manchester United – Premier League</a>
-      </li>
-      <!-- add more teams as needed -->
-    </ul>
+    <div class="instructions">
+      <p>
+        Use these URLs to subscribe in Google Calendar or Apple Calendar.
+        Right-click on a link and select "Copy link" to get the calendar URL.
+      </p>
+    </div>
 
-    <p>
-      Use these URLs to subscribe in Google Calendar or Apple Calendar.
-    </p>
+    <div id="loading" class="loading">
+      Loading calendars...
+    </div>
+    <div id="content"></div>
+    <div id="error"></div>
+
+    <script>
+      async function loadCalendars() {
+        const contentDiv = document.getElementById('content');
+        const errorDiv = document.getElementById('error');
+        const loadingDiv = document.getElementById('loading');
+
+        try {
+          const response = await fetch('calendars.json');
+          if (!response.ok) {
+            throw new Error(`Failed to load calendars: ${response.status}`);
+          }
+
+          const data = await response.json();
+
+          if (!data.calendars || data.calendars.length === 0) {
+            loadingDiv.textContent = 'No calendars available yet.';
+            return;
+          }
+
+          loadingDiv.style.display = 'none';
+          contentDiv.innerHTML = data.calendars.map(league => `
+            <div class="league-section">
+              <h2>${league.league}</h2>
+              ${league.teams.map(team => `
+                <div class="team-section">
+                  <div class="team-name">${team.name}</div>
+                  <ul class="competitions-list">
+                    ${team.competitions.map(comp => `
+                      <li>
+                        <a href="${comp.url}" title="${team.name} – ${comp.name}">
+                          ${comp.name}
+                        </a>
+                      </li>
+                    `).join('')}
+                  </ul>
+                </div>
+              `).join('')}
+            </div>
+          `).join('');
+
+        } catch (err) {
+          loadingDiv.style.display = 'none';
+          errorDiv.className = 'error';
+          errorDiv.innerHTML = `<strong>Error loading calendars:</strong> ${err.message}`;
+          console.error('Error loading calendars:', err);
+        }
+      }
+
+      // Load calendars when page loads
+      document.addEventListener('DOMContentLoaded', loadCalendars);
+    </script>
   </body>
 </html>
