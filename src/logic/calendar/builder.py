@@ -57,4 +57,4 @@ class CalendarBuilder:
             bytes: The ICS formatted calendar data.
         """
         logger.debug("Converting calendar to ICS format")
-        return self.calendar.to_ical()  # type: ignore[no-any-return]
+        return self.calendar.to_ical()
