@@ -110,7 +110,7 @@ h2 {
   margin: 0;
 }
 
-.competitions-list a {
+.competitions-list button {
   color: #0066cc;
   text-decoration: none;
   padding: 6px 12px;
@@ -123,14 +123,29 @@ h2 {
   cursor: pointer;
 }
 
-.competitions-list a:hover {
+.competitions-list button img,
+.competitions-list button svg {
+  display: inline-block;
+  vertical-align: middle;
+  height: 1em;
+  width: 1em;
+  margin: 0;
+  padding: 0;
+}
+
+.competitions-list button:hover {
   background: #0066cc;
   color: white;
   border-color: #0066cc;
   box-shadow: 0 2px 8px rgba(0, 102, 204, 0.2);
 }
 
-.competitions-list a:active {
+.competitions-list button:hover img,
+.competitions-list button:hover svg {
+  color: white;
+}
+
+.competitions-list button:active {
   transform: scale(0.98);
 }
 
@@ -162,7 +177,7 @@ h2 {
     gap: 6px;
   }
 
-  .competitions-list a {
+  .competitions-list button {
     padding: 5px 10px;
     font-size: 13px;
   }
