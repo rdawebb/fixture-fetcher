@@ -57,7 +57,7 @@ jobs:
           PYTHONPATH: ${{ github.workspace }}
         run: |
           mkdir -p public
-          uv run scripts/build.py
+          uv run scripts/build_calendars.py
 
       - name: Validate build output
         run: |
