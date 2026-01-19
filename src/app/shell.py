@@ -61,7 +61,9 @@ class CLI:
             spinner = Spinner(DOTS, text="Fetching fixtures...")
             spinner.start()
             build(
-                team=selected_team, competitions=["PL"], output=Path("public/calendars")
+                teams=[selected_team],
+                competitions=["PL"],
+                output=Path("public/calendars"),
             )
             spinner.stop()
 

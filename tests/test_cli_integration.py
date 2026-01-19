@@ -60,7 +60,7 @@ class TestBuildFunction:
         # Run build function
         output_dir = tmp_path / "output"
         cache_dir = tmp_path / "cache"
-        build(team="Manchester United", output=output_dir, cache_dir=cache_dir)
+        build(teams=["Manchester United"], output=output_dir, cache_dir=cache_dir)
 
         # Verify repository was called correctly
         mock_repo.fetch_fixtures.assert_called_once()
@@ -83,7 +83,7 @@ class TestBuildFunction:
         cache_dir = tmp_path / "cache"
 
         with pytest.raises(InvalidInputError):
-            build(output=output_dir, cache_dir=cache_dir)
+            build(teams=[], output=output_dir, cache_dir=cache_dir)
 
         # Repository should not be called when no team is specified
         mock_repo.fetch_fixtures.assert_not_called()
@@ -130,7 +130,7 @@ class TestBuildFunction:
         output_dir = tmp_path / "output"
         cache_dir = tmp_path / "cache"
         build(
-            team="Manchester United",
+            teams=["Manchester United"],
             televised_only=True,
             output=output_dir,
             cache_dir=cache_dir,
@@ -168,7 +168,7 @@ class TestBuildFunction:
         output_dir = tmp_path / "output"
         cache_dir = tmp_path / "cache"
         build(
-            team="Manchester United",
+            teams=["Manchester United"],
             competitions=["PL", "CL"],
             output=output_dir,
             cache_dir=cache_dir,
@@ -189,7 +189,7 @@ class TestBuildFunction:
         output_dir = tmp_path / "output"
         cache_dir = tmp_path / "cache"
         build(
-            team="Manchester United",
+            teams=["Manchester United"],
             refresh_cache=True,
             output=output_dir,
             cache_dir=cache_dir,
@@ -209,7 +209,7 @@ class TestBuildFunction:
         cache_dir = tmp_path / "cache"
         assert not output_dir.exists()
 
-        build(team="Manchester United", output=output_dir, cache_dir=cache_dir)
+        build(teams=["Manchester United"], output=output_dir, cache_dir=cache_dir)
 
         # Output directory should be created
         assert output_dir.exists()
@@ -225,7 +225,7 @@ class TestBuildFunction:
         cache_dir = tmp_path / "cache"
 
         # Should not raise, but log error
-        build(team="Manchester United", output=output_dir, cache_dir=cache_dir)
+        build(teams=["Manchester United"], output=output_dir, cache_dir=cache_dir)
 
     @patch("app.cli.FootballDataRepository")
     def test_build_no_summarise(self, mock_repo_class, tmp_path):
@@ -251,7 +251,7 @@ class TestBuildFunction:
         output_dir = tmp_path / "output"
         cache_dir = tmp_path / "cache"
         build(
-            team="Manchester United",
+            teams=["Manchester United"],
             summarise=False,
             output=output_dir,
             cache_dir=cache_dir,
@@ -465,7 +465,7 @@ class TestCLIEndToEnd:
         cache_dir.mkdir()
 
         build(
-            team="Manchester United",
+            teams=["Manchester United"],
             competitions=["PL"],
             home_only=True,
             output=output_dir,
@@ -517,7 +517,7 @@ class TestCLIEndToEnd:
             )
 
             build(
-                team="Manchester United",
+                teams=["Manchester United"],
                 output=output_dir,
                 cache_dir=cache_dir,
             )
@@ -555,7 +555,7 @@ class TestCLIEndToEnd:
             mock_enrich.side_effect = Exception("Enrichment failed")
 
             result = build(
-                team="Manchester United",
+                teams=["Manchester United"],
                 output=output_dir,
                 cache_dir=cache_dir,
             )
@@ -592,7 +592,7 @@ class TestCLIEndToEnd:
         cache_dir = tmp_path / "cache"
 
         result = build(
-            team="Manchester United",
+            teams=["Manchester United"],
             home_only=True,
             away_only=False,
             televised_only=True,
@@ -620,7 +620,7 @@ class TestCLIEndToEnd:
         cache_dir = tmp_path / "cache"
 
         result = build(
-            team="Unknown Team",
+            teams=["Unknown Team"],
             output=output_dir,
             cache_dir=cache_dir,
         )

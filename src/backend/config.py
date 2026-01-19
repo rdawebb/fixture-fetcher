@@ -17,6 +17,7 @@ load_dotenv(Path(__file__).parent.parent.parent / ".env")
 
 FOOTBALL_DATA_API = os.getenv("FOOTBALL_DATA_API", "https://api.football-data.org/v4/")
 FOOTBALL_DATA_API_TOKEN = os.getenv("FOOTBALL_DATA_API_TOKEN")
+API_RATE_LIMIT_DELAY = float(os.getenv("API_RATE_LIMIT_DELAY", "6.0"))
 
 # Cache configuration
 
@@ -61,6 +62,7 @@ def get_config() -> dict:
     return {
         "FOOTBALL_DATA_API": FOOTBALL_DATA_API,
         "FOOTBALL_DATA_API_TOKEN": FOOTBALL_DATA_API_TOKEN,
+        "API_RATE_LIMIT_DELAY": API_RATE_LIMIT_DELAY,
         "CACHE_DIR": str(CACHE_DIR),
         "CACHE_PATH": str(CACHE_PATH),
     }

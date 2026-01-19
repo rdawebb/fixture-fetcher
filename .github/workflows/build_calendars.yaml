@@ -33,9 +33,18 @@ jobs:
         run: |
           pip install uv
 
-      - name: Install dependencies
+      - name: Install Python dependencies
         run: |
           uv sync --all-extras
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Node.js dependencies
+        run: |
+          npm ci
 
       - name: Fetch previously deployed calendar
         run: |
@@ -59,7 +68,7 @@ jobs:
           echo "✅ At least one calendar generated successfully"
 
       - name: Copy static files
-        run: cp -r static/* public/
+        run: node scripts/build_site.js
 
       - name: Check for calendar or static file changes
         id: changes

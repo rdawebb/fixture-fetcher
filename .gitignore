@@ -24,6 +24,10 @@ coverage.xml
 build/
 dist/
 fixture_fetcher.egg-info/
+node_modules/
+*.js.map
+*.tsbuildinfo
+static/*.js
 
 # Runtime data (generated, not source)
 data/cache/

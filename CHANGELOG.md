@@ -5,10 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [Unreleased]
+## [0.4.0]
+
+### Added
+
+- TypeScript support for static frontend with compilation to public/
+- `scripts/build_site.js` for building static assets with TypeScript compilation
+- `scripts/build_calendars.py` for building fixture calendars with argument support
+- Multi-team support in `build()` function for batch calendar generation
+- API rate limiting configuration with `API_RATE_LIMIT_DELAY` setting
+- Node.js development dependencies (TypeScript ^5.9.3)
+- Package.json and package-lock.json for Node.js dependency management
 
 ### Changed
 
+- Refactored build script from `scripts/build.py` to `scripts/build_calendars.py` with enhanced CLI
+- Updated GitHub Actions workflow to support Node.js 20 for static asset compilation
+- Changed static file copy from shell `cp` to JavaScript build script
+- Updated `build()` function signature: `team` parameter → `teams` (list-based)
+- Enhanced build workflow to compile TypeScript and bundle static assets
+- Improved CLI output with team-specific logging during batch operations
+- Moved inline JavaScript from HTML into TypeScript module (`main.ts`)
+- Updated development dependencies: prek→0.2.30, ruff→0.14.13, ty→0.0.12
 - Improved web UX with separate copy-to-clipboard and download buttons
 - Enhanced instructions to explain new options
 - Added visual download icon
@@ -86,7 +104,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Comprehensive logging setup
 
 
-[Unreleased]: https://github.com/rdawebb/fixture-fetcher/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/rdawebb/fixture-fetcher/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/rdawebb/fixture-fetcher/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/rdawebb/fixture-fetcher/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/rdawebb/fixture-fetcher/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/rdawebb/fixture-fetcher/releases/tag/v0.1.0

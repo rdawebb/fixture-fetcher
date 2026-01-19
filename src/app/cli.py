@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import time
 from pathlib import Path
 from typing import Optional
 
@@ -12,17 +13,17 @@ from logic.calendar.ics_writer import ICSWriter
 from logic.fixtures.enrich import enrich_all
 from logic.fixtures.filters import Filter
 from utils import (
-    get_logger,
     CalendarError,
     InvalidInputError,
     TeamNotFoundError,
     TeamsCacheError,
+    get_logger,
 )
-
 
 logger = get_logger(__name__)
 
 config = get_config()
+API_RATE_LIMIT_DELAY = float(config.get("API_RATE_LIMIT_DELAY", "6.0"))
 CACHE_DIR = Path(config.get("CACHE_DIR", "data/cache/"))
 CACHE_PATH = Path(config.get("CACHE_PATH", "data/cache/teams.yaml"))
 TV_OVERRIDES_PATH = Path(
@@ -43,7 +44,7 @@ def _slug(s: str) -> str:
 
 
 def build(
-    team: Optional[str] = None,
+    teams: list[str],
     competitions: Optional[list[str]] = None,
     season: Optional[int] = None,
     home_only: bool = False,
@@ -90,9 +91,11 @@ def build(
     if refresh_cache or not CACHE_PATH.exists():
         repo.client.refresh_team_cache()
 
-    if not team:
-        raise InvalidInputError("Team must be specified")
-    teams = [team]
+    if not teams:
+        raise InvalidInputError("Team(s) must be specified")
+    teams = [t.strip() for t in teams if t.strip()]
+
+    num_teams = len(teams)
 
     successful = []
     failed = []
@@ -110,6 +113,11 @@ def build(
             league_slug = _slug(league)
 
             fixtures = repo.fetch_fixtures(t, comps, season)
+            if num_teams >= 10:
+                time.sleep(API_RATE_LIMIT_DELAY)  # Rate limit sleep
+            logger.info(
+                f"Fetched fixtures for team '{short_name}' - waiting {API_RATE_LIMIT_DELAY} seconds..."
+            )
             fixtures = Filter.apply_filters(fixtures, scheduled_only=True)
 
             fixtures_by_comp = {}

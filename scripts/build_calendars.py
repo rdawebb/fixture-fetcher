@@ -2,15 +2,47 @@
 
 from pathlib import Path
 import sys
+import argparse
+import yaml
 
 from app.cli import build
 from utils.manifest import generate_manifest
+from backend.config import get_config
 
-if __name__ == "__main__":
+config = get_config()
+CACHE_PATH = config.get("CACHE_PATH", Path("data/cache/teams.yaml"))
+
+
+def load_pl_teams(cache_path: Path) -> list[str]:
+    """Load Premier League teams from the cache file.
+
+    Args:
+        cache_path (Path): Path to the cache file.
+
+    Returns:
+        list[str]: List of Premier League team names.
+    """
+    try:
+        with open(cache_path) as f:
+            teams_data = yaml.safe_load(f) or {}
+    except (FileNotFoundError, yaml.YAMLError) as e:
+        print(f"❌ Error loading cache file: {e}")
+        sys.exit(1)
+
+    pl_teams = teams_data.get("Premier League", [])
+    if not pl_teams:
+        print("❌ No Premier League teams found in cache")
+        sys.exit(1)
+
+    return list(pl_teams.keys())
+
+
+def build_calendars(teams: list[str]):
+    """Build calendar files for the specified teams and competitions."""
     calendars_dir = Path("public/calendars")
 
     result = build(
-        team="Manchester United FC",
+        teams=teams,
         competitions=["PL"],
         output=calendars_dir,
     )
@@ -42,3 +74,16 @@ if __name__ == "__main__":
     else:
         print("\n❌ Failed to build any calendars")
         sys.exit(1)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Build fixture calendars")
+    parser.add_argument(
+        "teams", nargs="*", help="Specific teams to build calendars for"
+    )
+
+    args = parser.parse_args()
+
+    teams_to_build = args.teams if args.teams else load_pl_teams(CACHE_PATH)
+
+    build_calendars(teams_to_build)
