@@ -2,87 +2,87 @@ BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Football Fixture Fetcher//mxm.dk//EN
 BEGIN:VEVENT
-SUMMARY:Arsenal vs Man United
-DTSTART;TZID=Europe/London:20260125T163000
-DTEND;TZID=Europe/London:20260125T183000
-UID:538007@fixture-fetcher
-DESCRIPTION:PL | Sky Sports | Matchday 23
+SUMMARY:Bournemouth vs Liverpool
+DTSTART;TZID=Europe/London:20260124T173000
+DTEND;TZID=Europe/London:20260124T193000
+UID:538005@fixture-fetcher
+DESCRIPTION:PL | Matchday 23
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:Man United vs Fulham
-DTSTART;TZID=Europe/London:20260201T140000
-DTEND;TZID=Europe/London:20260201T160000
-UID:538021@fixture-fetcher
-DESCRIPTION:PL | Sky Sports | Matchday 24
+SUMMARY:Liverpool vs Newcastle
+DTSTART;TZID=Europe/London:20260131T200000
+DTEND;TZID=Europe/London:20260131T220000
+UID:538019@fixture-fetcher
+DESCRIPTION:PL | Matchday 24
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:Man United vs Tottenham
-DTSTART;TZID=Europe/London:20260207T123000
-DTEND;TZID=Europe/London:20260207T143000
-UID:538032@fixture-fetcher
-DESCRIPTION:PL | TNT Sports | Matchday 25
+SUMMARY:Liverpool vs Man City
+DTSTART;TZID=Europe/London:20260208T163000
+DTEND;TZID=Europe/London:20260208T183000
+UID:538030@fixture-fetcher
+DESCRIPTION:PL | Matchday 25
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:West Ham vs Man United
-DTSTART;TZID=Europe/London:20260210T201500
-DTEND;TZID=Europe/London:20260210T221500
-UID:538044@fixture-fetcher
-DESCRIPTION:PL | TNT Sports | Matchday 26
+SUMMARY:Sunderland vs Liverpool
+DTSTART;TZID=Europe/London:20260211T201500
+DTEND;TZID=Europe/London:20260211T221500
+UID:538035@fixture-fetcher
+DESCRIPTION:PL | Matchday 26
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:Everton vs Man United
-DTSTART;TZID=Europe/London:20260223T200000
-DTEND;TZID=Europe/London:20260223T220000
-UID:538050@fixture-fetcher
-DESCRIPTION:PL | Sky Sports | Matchday 27
+SUMMARY:Nottingham vs Liverpool
+DTSTART;TZID=Europe/London:20260221T150000
+DTEND;TZID=Europe/London:20260221T170000
+UID:538052@fixture-fetcher
+DESCRIPTION:PL | Matchday 27
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:Man United vs Crystal Palace
-DTSTART;TZID=Europe/London:20260301T140000
-DTEND;TZID=Europe/London:20260301T160000
-UID:538062@fixture-fetcher
-DESCRIPTION:PL | Sky Sports | Matchday 28
+SUMMARY:Liverpool vs West Ham
+DTSTART;TZID=Europe/London:20260228T150000
+DTEND;TZID=Europe/London:20260228T170000
+UID:538060@fixture-fetcher
+DESCRIPTION:PL | Matchday 28
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:Newcastle vs Man United
+SUMMARY:Wolverhampton vs Liverpool
 DTSTART;TZID=Europe/London:20260304T200000
 DTEND;TZID=Europe/London:20260304T220000
-UID:538072@fixture-fetcher
+UID:538074@fixture-fetcher
 DESCRIPTION:PL | Matchday 29
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:Man United vs Aston Villa
+SUMMARY:Liverpool vs Tottenham
 DTSTART;TZID=Europe/London:20260314T150000
 DTEND;TZID=Europe/London:20260314T170000
-UID:538082@fixture-fetcher
+UID:538081@fixture-fetcher
 DESCRIPTION:PL | Matchday 30
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:Bournemouth vs Man United
+SUMMARY:Brighton Hove vs Liverpool
 DTSTART;TZID=Europe/London:20260321T150000
 DTEND;TZID=Europe/London:20260321T170000
-UID:538085@fixture-fetcher
+UID:538087@fixture-fetcher
 DESCRIPTION:PL | Matchday 31
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:Man United vs Leeds United
+SUMMARY:Liverpool vs Fulham
 DTSTART;TZID=Europe/London:20260411T150000
 DTEND;TZID=Europe/London:20260411T170000
-UID:538102@fixture-fetcher
+UID:538101@fixture-fetcher
 DESCRIPTION:PL | Matchday 32
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:Chelsea vs Man United
+SUMMARY:Everton vs Liverpool
 DTSTART;TZID=Europe/London:20260418T150000
 DTEND;TZID=Europe/London:20260418T170000
-UID:538108@fixture-fetcher
+UID:538109@fixture-fetcher
 DESCRIPTION:PL | Matchday 33
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:Man United vs Brentford
+SUMMARY:Liverpool vs Crystal Palace
 DTSTART;TZID=Europe/London:20260425T150000
 DTEND;TZID=Europe/London:20260425T170000
-UID:538122@fixture-fetcher
+UID:538121@fixture-fetcher
 DESCRIPTION:PL | Matchday 34
 END:VEVENT
 BEGIN:VEVENT
@@ -93,24 +93,24 @@ UID:538132@fixture-fetcher
 DESCRIPTION:PL | Matchday 35
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:Sunderland vs Man United
+SUMMARY:Liverpool vs Chelsea
 DTSTART;TZID=Europe/London:20260509T150000
 DTEND;TZID=Europe/London:20260509T170000
-UID:538135@fixture-fetcher
+UID:538140@fixture-fetcher
 DESCRIPTION:PL | Matchday 36
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:Man United vs Nottingham
+SUMMARY:Aston Villa vs Liverpool
 DTSTART;TZID=Europe/London:20260517T150000
 DTEND;TZID=Europe/London:20260517T170000
-UID:538152@fixture-fetcher
+UID:538146@fixture-fetcher
 DESCRIPTION:PL | Matchday 37
 END:VEVENT
 BEGIN:VEVENT
-SUMMARY:Brighton Hove vs Man United
+SUMMARY:Liverpool vs Brentford
 DTSTART;TZID=Europe/London:20260524T160000
 DTEND;TZID=Europe/London:20260524T180000
-UID:538156@fixture-fetcher
+UID:538160@fixture-fetcher
 DESCRIPTION:PL | Matchday 38
 END:VEVENT
 END:VCALENDAR
