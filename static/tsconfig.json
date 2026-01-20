@@ -8,7 +8,8 @@
     "strict": true,
     "incremental": true,
     "forceConsistentCasingInFileNames": true,
-    "outDir": "./public"
+    "outDir": "../public",
+    "tsBuildInfoFile": "./tsconfig.tsbuildinfo"
   },
   "include": ["**/*.ts"],
   "exclude": ["node_modules", "public"]

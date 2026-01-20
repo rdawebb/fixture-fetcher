@@ -31,7 +31,7 @@ function copyAssets(srcDir, destDir) {
     if (stat.isDirectory()) {
       fs.mkdirSync(destPath, { recursive: true });
       copyAssets(srcPath, destPath);
-    } else if (!file.match(/\.(ts|js|map)$/) && file !== 'tsconfig.json') {
+    } else if (!file.match(/\.(ts|js|map|tsbuildinfo)$/) && file !== 'tsconfig.json') {
       fs.copyFileSync(srcPath, destPath);
     }
   });
