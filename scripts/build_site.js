@@ -9,7 +9,7 @@ const PUBLIC_DIR = path.join(__dirname, '../public');
 if (fs.existsSync(PUBLIC_DIR)) {
   fs.readdirSync(PUBLIC_DIR).forEach(item => {
     const itemPath = path.join(PUBLIC_DIR, item);
-    if (item !== 'calendars') {
+    if (item !== 'calendars' && item !== 'calendars.json') {
       fs.rmSync(itemPath, { recursive: true, force: true });
     }
   });
