@@ -1,0 +1,230 @@
+{
+  "calendars": [
+    {
+      "league": "Premier League",
+      "slug": "premier-league",
+      "teams": [
+        {
+          "name": "Arsenal",
+          "slug": "arsenal",
+          "competitions": [
+            {
+              "code": "PL",
+              "name": "Premier League",
+              "url": "calendars/premier-league/arsenal/arsenal.pl.ics"
+            }
+          ]
+        },
+        {
+          "name": "Aston Villa",
+          "slug": "aston-villa",
+          "competitions": [
+            {
+              "code": "PL",
+              "name": "Premier League",
+              "url": "calendars/premier-league/aston-villa/aston-villa.pl.ics"
+            }
+          ]
+        },
+        {
+          "name": "Bournemouth",
+          "slug": "bournemouth",
+          "competitions": [
+            {
+              "code": "PL",
+              "name": "Premier League",
+              "url": "calendars/premier-league/bournemouth/bournemouth.pl.ics"
+            }
+          ]
+        },
+        {
+          "name": "Brentford",
+          "slug": "brentford",
+          "competitions": [
+            {
+              "code": "PL",
+              "name": "Premier League",
+              "url": "calendars/premier-league/brentford/brentford.pl.ics"
+            }
+          ]
+        },
+        {
+          "name": "Brighton Hove",
+          "slug": "brighton-hove",
+          "competitions": [
+            {
+              "code": "PL",
+              "name": "Premier League",
+              "url": "calendars/premier-league/brighton-hove/brighton-hove.pl.ics"
+            }
+          ]
+        },
+        {
+          "name": "Burnley",
+          "slug": "burnley",
+          "competitions": [
+            {
+              "code": "PL",
+              "name": "Premier League",
+              "url": "calendars/premier-league/burnley/burnley.pl.ics"
+            }
+          ]
+        },
+        {
+          "name": "Chelsea",
+          "slug": "chelsea",
+          "competitions": [
+            {
+              "code": "PL",
+              "name": "Premier League",
+              "url": "calendars/premier-league/chelsea/chelsea.pl.ics"
+            }
+          ]
+        },
+        {
+          "name": "Crystal Palace",
+          "slug": "crystal-palace",
+          "competitions": [
+            {
+              "code": "PL",
+              "name": "Premier League",
+              "url": "calendars/premier-league/crystal-palace/crystal-palace.pl.ics"
+            }
+          ]
+        },
+        {
+          "name": "Everton",
+          "slug": "everton",
+          "competitions": [
+            {
+              "code": "PL",
+              "name": "Premier League",
+              "url": "calendars/premier-league/everton/everton.pl.ics"
+            }
+          ]
+        },
+        {
+          "name": "Fulham",
+          "slug": "fulham",
+          "competitions": [
+            {
+              "code": "PL",
+              "name": "Premier League",
+              "url": "calendars/premier-league/fulham/fulham.pl.ics"
+            }
+          ]
+        },
+        {
+          "name": "Leeds United",
+          "slug": "leeds-united",
+          "competitions": [
+            {
+              "code": "PL",
+              "name": "Premier League",
+              "url": "calendars/premier-league/leeds-united/leeds-united.pl.ics"
+            }
+          ]
+        },
+        {
+          "name": "Liverpool",
+          "slug": "liverpool",
+          "competitions": [
+            {
+              "code": "PL",
+              "name": "Premier League",
+              "url": "calendars/premier-league/liverpool/liverpool.pl.ics"
+            }
+          ]
+        },
+        {
+          "name": "Man City",
+          "slug": "man-city",
+          "competitions": [
+            {
+              "code": "PL",
+              "name": "Premier League",
+              "url": "calendars/premier-league/man-city/man-city.pl.ics"
+            }
+          ]
+        },
+        {
+          "name": "Man United",
+          "slug": "man-united",
+          "competitions": [
+            {
+              "code": "PL",
+              "name": "Premier League",
+              "url": "calendars/premier-league/man-united/man-united.pl.ics"
+            }
+          ]
+        },
+        {
+          "name": "Newcastle",
+          "slug": "newcastle",
+          "competitions": [
+            {
+              "code": "PL",
+              "name": "Premier League",
+              "url": "calendars/premier-league/newcastle/newcastle.pl.ics"
+            }
+          ]
+        },
+        {
+          "name": "Nottingham",
+          "slug": "nottingham",
+          "competitions": [
+            {
+              "code": "PL",
+              "name": "Premier League",
+              "url": "calendars/premier-league/nottingham/nottingham.pl.ics"
+            }
+          ]
+        },
+        {
+          "name": "Sunderland",
+          "slug": "sunderland",
+          "competitions": [
+            {
+              "code": "PL",
+              "name": "Premier League",
+              "url": "calendars/premier-league/sunderland/sunderland.pl.ics"
+            }
+          ]
+        },
+        {
+          "name": "Tottenham",
+          "slug": "tottenham",
+          "competitions": [
+            {
+              "code": "PL",
+              "name": "Premier League",
+              "url": "calendars/premier-league/tottenham/tottenham.pl.ics"
+            }
+          ]
+        },
+        {
+          "name": "West Ham",
+          "slug": "west-ham",
+          "competitions": [
+            {
+              "code": "PL",
+              "name": "Premier League",
+              "url": "calendars/premier-league/west-ham/west-ham.pl.ics"
+            }
+          ]
+        },
+        {
+          "name": "Wolverhampton",
+          "slug": "wolverhampton",
+          "competitions": [
+            {
+              "code": "PL",
+              "name": "Premier League",
+              "url": "calendars/premier-league/wolverhampton/wolverhampton.pl.ics"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
