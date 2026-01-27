@@ -18,7 +18,7 @@ class CalendarComparison:
         """Get upcoming events from an ICS file as a tuple
 
         Args:
-            ics_file (Path): Path to the ICS file
+            ics_file: Path to the ICS file
 
         Returns:
             Set of (UID, DTSTART, DESCRIPTION) tuples for upcoming events
@@ -57,11 +57,11 @@ class CalendarComparison:
         """Compare two directories of ICS calendar files for upcoming events
 
         Args:
-            old_dir (Path): Path to directory of old ICS files
-            new_dir (Path): Path to directory of new ICS files
+            old_dir: Path to directory of old ICS files
+            new_dir: Path to directory of new ICS files
 
         Returns:
-            bool: True if upcoming events differ, False if the same
+            True if upcoming events differ, False if the same
         """
         old_signature = set()
         new_signature = set()

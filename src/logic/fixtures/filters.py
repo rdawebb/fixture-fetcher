@@ -32,7 +32,7 @@ class Filter:
             televised_only: Filter to only televised fixtures.
 
         Returns:
-            List[Fixture]: A list of Fixture objects matching all applied filters.
+            A list of Fixture objects matching all applied filters.
         """
         result = list(fixtures)
 
@@ -52,10 +52,10 @@ class Filter:
         """Filter fixtures to include only home games.
 
         Args:
-            fixtures (Iterable[Fixture]): An iterable of Fixture objects.
+            fixtures: An iterable of Fixture objects.
 
         Returns:
-            List[Fixture]: A list of Fixture objects that are home games.
+            A list of Fixture objects that are home games.
         """
         try:
             fixtures_list = list(fixtures)
@@ -75,10 +75,10 @@ class Filter:
         """Filter fixtures to include only away games.
 
         Args:
-            fixtures (Iterable[Fixture]): An iterable of Fixture objects.
+            fixtures: An iterable of Fixture objects.
 
         Returns:
-            List[Fixture]: A list of Fixture objects that are away games.
+            A list of Fixture objects that are away games.
         """
         try:
             fixtures_list = list(fixtures)
@@ -98,10 +98,10 @@ class Filter:
         """Filter fixtures to include only scheduled games.
 
         Args:
-            fixtures (Iterable[Fixture]): An iterable of Fixture objects.
+            fixtures: An iterable of Fixture objects.
 
         Returns:
-            List[Fixture]: A list of Fixture objects that are scheduled.
+            A list of Fixture objects that are scheduled.
         """
         try:
             fixtures_list = list(fixtures)
@@ -121,10 +121,10 @@ class Filter:
         """Filter fixtures to include only televised games.
 
         Args:
-            fixtures (Iterable[Fixture]): An iterable of Fixture objects.
+            fixtures: An iterable of Fixture objects.
 
         Returns:
-            List[Fixture]: A list of Fixture objects that are televised.
+            A list of Fixture objects that are televised.
         """
         try:
             fixtures_list = list(fixtures)
@@ -144,11 +144,11 @@ class Filter:
         """Filter fixtures by competition code.
 
         Args:
-            fixtures (Iterable[Fixture]): An iterable of Fixture objects.
-            comp_code (str): The competition code to filter by.
+            fixtures: An iterable of Fixture objects.
+            comp_code: The competition code to filter by.
 
         Returns:
-            List[Fixture]: A list of Fixture objects that match the competition code.
+            A list of Fixture objects that match the competition code.
         """
         if comp_code is None or comp_code == "" or not isinstance(comp_code, str):
             logger.error("Invalid competition code provided for filtering.")
@@ -172,12 +172,12 @@ class Filter:
         """Filter fixtures within a specific date range.
 
         Args:
-            fixtures (Iterable[Fixture]): An iterable of Fixture objects.
-            start_date (datetime): The start date of the range.
-            end_date (datetime): The end date of the range.
+            fixtures: An iterable of Fixture objects.
+            start_date: The start date of the range.
+            end_date: The end date of the range.
 
         Returns:
-            List[Fixture]: A list of Fixture objects within the specified date range.
+            A list of Fixture objects within the specified date range.
         """
         if not isinstance(start_date, datetime) or not isinstance(end_date, datetime):
             logger.error("Invalid date range provided for filtering.")

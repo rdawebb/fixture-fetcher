@@ -16,13 +16,13 @@ def get_logger(
     """Configure centralised logging with file and stream handlers.
 
     Args:
-        name (Optional[str]): Name of the logger.
-        log_dir (str, optional): Directory for log files.
-        log_file (str, optional): Path to the log file.
-        log_level (str, optional): Logging level (e.g., DEBUG, INFO).
+        name: Name of the logger.
+        log_dir: Directory for log files.
+        log_file: Path to the log file.
+        log_level: Logging level (e.g., DEBUG, INFO).
 
     Returns:
-        logging.Logger: Configured logger instance.
+        Configured logger instance.
     """
     if not getattr(get_logger, "_configured", False):
         log_dir = log_dir or os.getenv("LOG_DIR") or "logs"

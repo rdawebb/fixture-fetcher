@@ -27,10 +27,10 @@ class CalendarBuilder:
         """Add fixtures to the calendar.
 
         Args:
-            fixtures (Iterable[Fixture]): An iterable of Fixture objects.
+            fixtures: An iterable of Fixture objects.
 
         Returns:
-            CalendarBuilder: The current instance of CalendarBuilder.
+            The current instance of CalendarBuilder.
         """
         for fixture in fixtures:
             event = self.formatter.format_event(fixture)
@@ -45,7 +45,7 @@ class CalendarBuilder:
         """Build and return the calendar.
 
         Returns:
-            Calendar: The constructed calendar object.
+            The constructed calendar object.
         """
         logger.debug("Calendar build complete")
         return self.calendar
@@ -54,7 +54,7 @@ class CalendarBuilder:
         """Convert the calendar to ICS format.
 
         Returns:
-            bytes: The ICS formatted calendar data.
+            The ICS formatted calendar data.
         """
         logger.debug("Converting calendar to ICS format")
         return self.calendar.to_ical()

@@ -15,11 +15,26 @@ class EventFormatter:
 
     @staticmethod
     def _uid(f: Fixture) -> str:
-        """Generate a unique ID for the fixture"""
+        """Generate a unique ID for the fixture
+
+        Args:
+            f: The Fixture object to generate a UID for.
+
+        Returns:
+            A unique ID for the fixture.
+        """
         return f"{f.id}@fixture-fetcher"
 
     @classmethod
     def format_event(cls, fixture: Fixture) -> Event:
+        """Format a Fixture object as an iCalendar Event.
+
+        Args:
+            fixture: The Fixture object to format.
+
+        Returns:
+            An iCalendar Event object.
+        """
         event = Event()
         event.add("uid", cls._uid(fixture))
         title = f"{fixture.home_team} vs {fixture.away_team}"

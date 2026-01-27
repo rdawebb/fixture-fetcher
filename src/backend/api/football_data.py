@@ -40,16 +40,14 @@ HTTP_ERROR_MAP: dict[int, tuple] = {
 
 
 class FDClient:
-    """
-    Low-level client for interacting with the Football Data API.
+    """Low-level client for interacting with the Football Data API.
 
     Attributes:
         session: Requests session with authentication headers.
     """
 
     def __init__(self) -> None:
-        """
-        Initialise the Football Data API client.
+        """Initialise the Football Data API client.
 
         Raises:
             AuthenticationError: If FOOTBALL_DATA_API_TOKEN is not set.
@@ -67,8 +65,7 @@ class FDClient:
         logger.debug("FDClient initialised successfully")
 
     def _load_cache(self) -> dict[str, Any]:
-        """
-        Load team cache from cache_path.
+        """Load team cache from cache_path.
 
         Returns:
             A dictionary mapping team names to their IDs.
@@ -88,9 +85,7 @@ class FDClient:
         return {}
 
     def _save_cache(self) -> None:
-        """
-        Save team cache to cache_path.
-        """
+        """Save team cache to cache_path."""
         try:
             self.cache_path.parent.mkdir(parents=True, exist_ok=True)
             if self.cache_path.exists() and self.cache_path.is_dir():
@@ -125,8 +120,7 @@ class FDClient:
         short_name: str | None = None,
         venue: str | None = None,
     ) -> None:
-        """
-        Add a team to the cache and save it.
+        """Add a team to the cache and save it.
 
         Args:
             league: The league name.
@@ -149,8 +143,7 @@ class FDClient:
     def refresh_team_cache(
         self, competitions: list[str] | None = None, cache_path: Optional[Path] = None
     ) -> None:
-        """
-        Refresh the team cache by fetching teams from specified competitions.
+        """Refresh the team cache by fetching teams from specified competitions.
 
         Args:
             competitions: List of competition codes to fetch teams from.
@@ -194,8 +187,7 @@ class FDClient:
             print("⚠️ No teams fetched to refresh cache")
 
     def _handle_response(self, response: requests.Response, context: str = "") -> dict:
-        """
-        Handle API response and raise appropriate exceptions.
+        """Handle API response and raise appropriate exceptions.
 
         Args:
             response: The HTTP response from the API.
@@ -238,8 +230,7 @@ class FDClient:
             ) from e
 
     def get_team_id_by_name(self, team_name: str) -> int:
-        """
-        Get the team ID for a given team.
+        """Get the team ID for a given team.
 
         Args:
             team_name: Name of the team to search for.
@@ -312,7 +303,16 @@ class FDClient:
         competitions: Optional[list[str]] = None,
         season: Optional[int] = None,
     ) -> list[Fixture]:
-        """Fetch fixtures for a given team."""
+        """Fetch fixtures for a given team.
+
+        Args:
+            team_name: Name of the team to fetch fixtures for.
+            competitions: List of competition codes to filter fixtures.
+            season: Season year to filter fixtures.
+
+        Returns:
+            List of fixtures for the specified team.
+        """
         logger.info(f"Fetching fixtures for team: {team_name}")
         team_id = self.get_team_id_by_name(team_name)
 

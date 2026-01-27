@@ -17,11 +17,11 @@ class FixtureRepository(Protocol):
         """Fetch fixtures for a given team, optionally filtered by competitions and season.
 
         Args:
-            team_name (str): The name of the team to fetch fixtures for.
-            competitions (Optional[List[str]]): A list of competition codes to filter fixtures.
-            season (Optional[int]): The season year to filter fixtures.
+            team_name: The name of the team to fetch fixtures for.
+            competitions: A list of competition codes to filter fixtures.
+            season: The season year to filter fixtures.
 
         Returns:
-            List[Fixture]: A list of Fixture objects matching the criteria.
+            A list of Fixture objects matching the criteria.
         """
         ...

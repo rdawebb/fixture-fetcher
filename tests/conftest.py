@@ -14,7 +14,11 @@ from backend.api.football_data import FDClient
 
 @pytest.fixture
 def sample_fixture() -> Fixture:
-    """Create a sample fixture for testing."""
+    """Create a sample fixture for testing.
+
+    Returns:
+        A sample fixture instance.
+    """
     return Fixture(
         id="12345",
         competition="Premier League",
@@ -32,7 +36,11 @@ def sample_fixture() -> Fixture:
 
 @pytest.fixture
 def sample_fixtures() -> List[Fixture]:
-    """Create a list of sample fixtures for testing."""
+    """Create a list of sample fixtures for testing.
+
+    Returns:
+        A list of sample fixture instances.
+    """
     return [
         Fixture(
             id="1",
@@ -91,14 +99,25 @@ def sample_fixtures() -> List[Fixture]:
 
 @pytest.fixture
 def temp_yaml_file(tmp_path: Path) -> Path:
-    """Create a temporary YAML file for testing."""
+    """Create a temporary YAML file for testing.
+
+    Args:
+        tmp_path: The temporary directory path.
+
+    Returns:
+        The path to the temporary YAML file.
+    """
     yaml_file = tmp_path / "test.yaml"
     return yaml_file
 
 
 @pytest.fixture
 def mock_ics_url() -> str:
-    """Return a mock ICS URL for testing."""
+    """Return a mock ICS URL for testing.
+
+    Returns:
+        A mock ICS URL.
+    """
     return "webcal://example.com/calendar.ics"
 
 
@@ -110,6 +129,16 @@ def mock_api_response():
     """Factory for creating mock API responses."""
 
     def _create_response(status_code=200, json_data=None, side_effect=None):
+        """Create a mock API response.
+
+        Args:
+            status_code: The HTTP status code for the response.
+            json_data: The JSON data to return for the response.
+            side_effect: An exception to raise when calling json().
+
+        Returns:
+            A mock API response object.
+        """
         response = Mock()
         response.status_code = status_code
         if json_data is not None:
@@ -122,8 +151,12 @@ def mock_api_response():
 
 
 @pytest.fixture
-def sample_match_data():
-    """Sample match data for API responses."""
+def sample_match_data() -> dict:
+    """Sample match data for API responses.
+
+    Returns:
+        The sample match data.
+    """
     return {
         "id": "1",
         "status": "SCHEDULED",
@@ -145,8 +178,12 @@ def sample_match_data():
 
 
 @pytest.fixture
-def sample_team_data():
-    """Sample team data for API responses."""
+def sample_team_data() -> dict:
+    """Sample team data for API responses.
+
+    Returns:
+        The sample team data.
+    """
     return {
         "name": "Manchester United",
         "shortName": "Man Utd",
@@ -156,22 +193,43 @@ def sample_team_data():
 
 @pytest.fixture
 def mock_cache_path(tmp_path):
-    """Fixture that patches CACHE_PATH and returns the path."""
+    """Fixture that patches CACHE_PATH and returns the path.
+
+    Args:
+        tmp_path: The temporary directory path.
+
+    Yields:
+        Path: The path to the temporary cache file.
+    """
     cache_file = tmp_path / "teams.yaml"
     with patch("backend.api.football_data.CACHE_PATH", cache_file):
         yield cache_file
 
 
 @pytest.fixture
-def fdclient_with_cache(mock_cache_path):
-    """Fixture that returns an FDClient with mocked cache path."""
+def fdclient_with_cache(mock_cache_path) -> FDClient:
+    """Fixture that returns an FDClient with mocked cache path.
+
+    Args:
+        mock_cache_path: The mocked cache path.
+
+    Returns:
+        An instance of FDClient with the mocked cache path.
+    """
     with patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"):
         return FDClient()
 
 
 @pytest.fixture
 def cache_with_teams(tmp_path):
-    """Create a cache file with sample teams."""
+    """Create a cache file with sample teams.
+
+    Args:
+        tmp_path: The temporary directory path.
+
+    Yields:
+        FDClient: An instance of FDClient with the mocked cache path.
+    """
     cache_file = tmp_path / "teams.yaml"
     cache_data = {
         "Premier League": {
@@ -190,8 +248,12 @@ def cache_with_teams(tmp_path):
 
 
 @pytest.fixture
-def fixture_with_all_fields():
-    """Fixture with all fields populated."""
+def fixture_with_all_fields() -> Fixture:
+    """Fixture with all fields populated.
+
+    Returns:
+        The fixture with all fields populated.
+    """
     return Fixture(
         id="1",
         competition="Premier League",
@@ -208,8 +270,12 @@ def fixture_with_all_fields():
 
 
 @pytest.fixture
-def fixture_without_optional_fields():
-    """Fixture without optional fields (None values)."""
+def fixture_without_optional_fields() -> Fixture:
+    """Fixture without optional fields (None values).
+
+    Returns:
+        The fixture without optional fields.
+    """
     return Fixture(
         id="2",
         competition="FA Cup",
@@ -226,8 +292,12 @@ def fixture_without_optional_fields():
 
 
 @pytest.fixture
-def fixture_with_different_status():
-    """Fixture with FINISHED status."""
+def fixture_with_different_status() -> Fixture:
+    """Fixture with FINISHED status.
+
+    Returns:
+        The fixture with FINISHED status.
+    """
     return Fixture(
         id="1",
         competition="Premier League",
@@ -244,8 +314,12 @@ def fixture_with_different_status():
 
 
 @pytest.fixture
-def fixture_with_different_time():
-    """Fixture with different kickoff time."""
+def fixture_with_different_time() -> Fixture:
+    """Fixture with different kickoff time.
+
+    Returns:
+        The fixture with different kickoff time.
+    """
     return Fixture(
         id="1",
         competition="Premier League",
@@ -262,8 +336,12 @@ def fixture_with_different_time():
 
 
 @pytest.fixture
-def fixture_with_different_venue():
-    """Fixture with different venue."""
+def fixture_with_different_venue() -> Fixture:
+    """Fixture with different venue.
+
+    Returns:
+        The fixture with different venue.
+    """
     return Fixture(
         id="1",
         competition="Premier League",
@@ -281,7 +359,15 @@ def fixture_with_different_venue():
 
 @pytest.fixture
 def snapshot_from_fixture(fixture_with_all_fields, tmp_path):
-    """Create and load a snapshot from a fixture."""
+    """Create and load a snapshot from a fixture.
+
+    Args:
+        fixture_with_all_fields: The fixture to create a snapshot from.
+        tmp_path: The temporary directory path.
+
+    Returns:
+        The loaded snapshot.
+    """
     from backend.storage.snapshot import save_snapshot, load_snapshot
 
     snapshot_path = tmp_path / "snapshot.json"
@@ -293,8 +379,15 @@ def snapshot_from_fixture(fixture_with_all_fields, tmp_path):
 
 
 @pytest.fixture
-def calendars_with_single_team(tmp_path):
-    """Create a calendars directory with a single team and competition."""
+def calendars_with_single_team(tmp_path) -> tuple[Path, Path]:
+    """Create a calendars directory with a single team and competition.
+
+    Args:
+        tmp_path: The temporary directory path.
+
+    Returns:
+        A tuple containing the calendars directory and the team directory.
+    """
     calendars_dir = tmp_path / "calendars"
     league_dir = calendars_dir / "premier-league"
     team_dir = league_dir / "manchester-united"
@@ -307,8 +400,15 @@ def calendars_with_single_team(tmp_path):
 
 
 @pytest.fixture
-def calendars_with_multiple_teams(tmp_path):
-    """Create a calendars directory with multiple teams in one league."""
+def calendars_with_multiple_teams(tmp_path) -> tuple[Path, list[Path]]:
+    """Create a calendars directory with multiple teams in one league.
+
+    Args:
+        tmp_path: The temporary directory path.
+
+    Returns:
+        A tuple containing the calendars directory and a list of team directories.
+    """
     calendars_dir = tmp_path / "calendars"
     league_dir = calendars_dir / "premier-league"
 
@@ -324,8 +424,15 @@ def calendars_with_multiple_teams(tmp_path):
 
 
 @pytest.fixture
-def calendars_with_multiple_competitions(tmp_path):
-    """Create a calendars directory with a team having multiple competitions."""
+def calendars_with_multiple_competitions(tmp_path) -> tuple[Path, Path]:
+    """Create a calendars directory with a team having multiple competitions.
+
+    Args:
+        tmp_path: The temporary directory path.
+
+    Returns:
+        A tuple containing the calendars directory and the team directory.
+    """
     calendars_dir = tmp_path / "calendars"
     league_dir = calendars_dir / "premier-league"
     team_dir = league_dir / "manchester-united"
@@ -339,8 +446,15 @@ def calendars_with_multiple_competitions(tmp_path):
 
 
 @pytest.fixture
-def calendars_with_multiple_leagues(tmp_path):
-    """Create a calendars directory with multiple leagues."""
+def calendars_with_multiple_leagues(tmp_path) -> tuple[Path, list[Path]]:
+    """Create a calendars directory with multiple leagues.
+
+    Args:
+        tmp_path: The temporary directory path.
+
+    Returns:
+        A tuple containing the calendars directory and a list of league directories.
+    """
     calendars_dir = tmp_path / "calendars"
     leagues = []
 

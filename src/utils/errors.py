@@ -7,8 +7,8 @@ from typing import Any, Optional
 
 
 class APIError(Exception):
-    """
-    Base class for API errors.
+    """Base class for API errors.
+
     Attributes:
         status_code: HTTP status code returned by the API.
         response: The full HTTP response object.
@@ -22,16 +22,25 @@ class APIError(Exception):
         status_code: Optional[int] = None,
         response: Any = None,
     ) -> None:
+        """Initialise APIError.
+
+        Args:
+            message: An optional error message.
+            status_code: An optional HTTP status code.
+            response: An optional HTTP response object.
+        """
         super().__init__(message)
         self.status_code = status_code
         self.response = response
 
     def _log(self) -> None:
+        """Log the error details."""
         logger = logging.getLogger(__name__)
         log_func = getattr(logger, self.LOG_LEVEL)
         log_func(f"{self.__class__.__name__}: {self} (status_code: {self.status_code})")
 
     def handle(self) -> None:
+        """Handle the error."""
         self._log()
 
 
@@ -109,15 +118,23 @@ class ApplicationError(Exception):
     LOG_LEVEL = "error"
 
     def __init__(self, message: Optional[str] = None, context: Any = None) -> None:
+        """Initialise ApplicationError.
+
+        Args:
+            message: An optional error message.
+            context: Additional context about the error.
+        """
         super().__init__(message)
         self.context = context
 
     def _log(self) -> None:
+        """Log the error details."""
         logger = logging.getLogger(__name__)
         log_func = getattr(logger, self.LOG_LEVEL)
         log_func(f"{self.__class__.__name__}: {self} (context: {self.context})")
 
     def handle(self) -> None:
+        """Handle the error."""
         self._log()
 
 

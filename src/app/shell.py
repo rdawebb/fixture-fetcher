@@ -18,7 +18,7 @@ class CLI:
     """CLI class to interact with the user for fetching football fixtures."""
 
     def __init__(self):
-        """Initialize the CLI."""
+        """Initialise the CLI."""
         self.console = console
         self.panel_width = console.size.width
 

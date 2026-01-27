@@ -36,6 +36,10 @@ class Fixture:
     is_home: bool
 
     def __str__(self) -> str:
-        """Return a human-readable representation of the fixture."""
+        """Return a human-readable representation of the fixture.
+
+        Returns:
+            A string representation of the fixture.
+        """
         home_away = "vs" if self.is_home else "@"
         return f"{self.home_team} {home_away} {self.away_team} ({self.competition})"

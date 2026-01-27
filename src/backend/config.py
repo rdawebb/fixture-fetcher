@@ -56,7 +56,7 @@ def get_config() -> dict:
     Get the current configuration settings.
 
     Returns:
-        dict: A dictionary of configuration settings.
+        A dictionary of configuration settings.
     """
     validate_config()
     return {

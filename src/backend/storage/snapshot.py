@@ -17,10 +17,10 @@ def _fixture_to_dict(fixture: Fixture) -> dict:
     """Convert a Fixture object to a dictionary for snapshotting.
 
     Args:
-        fixture (Fixture): The Fixture object to convert.
+        fixture: The Fixture object to convert.
 
     Returns:
-        dict: A dictionary representation of the Fixture.
+        A dictionary representation of the Fixture.
     """
     dict = asdict(fixture)
     dict["utc_kickoff"] = (
@@ -33,10 +33,10 @@ def _dict_to_key_fields(d: dict) -> Tuple[str, str, str, str]:
     """Extract key fields from a fixture dictionary for comparison.
 
     Args:
-        d (dict): The fixture dictionary.
+        d: The fixture dictionary.
 
     Returns:
-        Tuple[str, str, str, str]: A tuple of (kickoff, venue, tv, status).
+        A tuple of (kickoff, venue, tv, status).
     """
     return (
         d.get("utc_kickoff", "") or "",
@@ -50,8 +50,8 @@ def save_snapshot(fixtures: List[Fixture], path: Path) -> None:
     """Save a snapshot of fixtures to a JSON file.
 
     Args:
-        fixtures (List[Fixture]): The list of Fixture objects to snapshot.
-        path (Path): The path to the JSON file to save the snapshot.
+        fixtures: The list of Fixture objects to snapshot.
+        path: The path to the JSON file to save the snapshot.
     """
     path.parent.mkdir(parents=True, exist_ok=True)
     snapshot = {f.id: _fixture_to_dict(f) for f in fixtures}
@@ -67,10 +67,10 @@ def load_snapshot(path: Path) -> Dict[str, dict]:
     """Load a snapshot of fixtures from a JSON file.
 
     Args:
-        path (Path): The path to the JSON file containing the snapshot.
+        path: The path to the JSON file containing the snapshot.
 
     Returns:
-        Dict[str, dict]: A dictionary mapping fixture IDs to their snapshot dictionaries.
+        A dictionary mapping fixture IDs to their snapshot dictionaries.
     """
     if not path.exists():
         logger.warning("Snapshot file does not exist.")
@@ -86,11 +86,11 @@ def diff_changes(current: List[Fixture], snapshot: Dict[str, dict]) -> Dict[str,
     """Compare current fixtures to a snapshot and identify changes.
 
     Args:
-        current (List[Fixture]): The current list of Fixture objects.
-        snapshot (Dict[str, dict]): The snapshot dictionary mapping fixture IDs to their data.
+        current: The current list of Fixture objects.
+        snapshot: The snapshot dictionary mapping fixture IDs to their data.
 
     Returns:
-        Dict[str, int]: A dictionary with counts of 'time', 'venue', 'tv', and 'status' changes.
+        A dictionary with counts of 'time', 'venue', 'tv', and 'status' changes.
     """
     counts = {"time": 0, "venue": 0, "tv": 0, "status": 0}
     for f in current:

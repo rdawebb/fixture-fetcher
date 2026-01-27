@@ -13,7 +13,7 @@ def handle_error(error: Exception) -> int:
         error: The exception to handle.
 
     Returns:
-        Exit code: 0 for success, 1 for API/Application errors, 2 for unexpected errors.
+        0 for success, 1 for API/Application errors, 2 for unexpected errors.
     """
     if isinstance(error, ConfigurationError):
         error.handle()

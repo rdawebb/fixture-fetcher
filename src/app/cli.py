@@ -35,10 +35,10 @@ def _slug(s: str) -> str:
     """Convert a club name to a slug format
 
     Args:
-        s (str): Input string to convert
+        s: Input string to convert
 
     Returns:
-        str: Slugified string
+        Slugified string
     """
     return "".join(c.lower() if c.isalnum() else "-" for c in s).strip("-")
 
@@ -61,27 +61,27 @@ def build(
     """Build ICS calendar files for football fixtures.
 
     Args:
-        team (Optional[str]): Team name to build calendar for.
-        competition (Optional[list[str]]): Competition code to filter fixtures.
-        season (Optional[int]): Season year (e.g., 2025 for 2025/26 season).
-        home_only (bool): Whether to include only home fixtures.
-        away_only (bool): Whether to include only away fixtures.
-        televised_only (bool): Whether to include only fixtures with TV info.
-        output (Path): Output directory for ICS files.
-        tv_from (str): Source for TV info: 'auto', 'club_ics', or 'overrides'.
-        overrides (Optional[Path]): Overrides YAML file path.
-        refresh_cache (bool): Whether to refresh the local team cache from the API.
-        refresh_competitions (bool): Whether to refresh the local competitions cache from the API.
-        summarise (bool): Whether to print a summary of changes.
+        team: Team name to build calendar for.
+        competition: Competition code to filter fixtures.
+        season: Season year (e.g., 2025 for 2025/26 season).
+        home_only: Whether to include only home fixtures.
+        away_only: Whether to include only away fixtures.
+        televised_only: Whether to include only fixtures with TV info.
+        output: Output directory for ICS files.
+        tv_from: Source for TV info: 'auto', 'club_ics', or 'overrides'.
+        overrides: Overrides YAML file path.
+        refresh_cache: Whether to refresh the local team cache from the API.
+        refresh_competitions: Whether to refresh the local competitions cache from the API.
+        summarise: Whether to print a summary of changes.
 
     Returns:
-        dict: Summary of the build process with keys:
-            - successful: List of (team_name, competition_name) tuples
-            - failed: List of (team_name, error_message) tuples
-            - total: Total number of teams attempted
+        Summary of the build process with keys:
+        - successful: List of (team_name, competition_name) tuples
+        - failed: List of (team_name, error_message) tuples
+        - total: Total number of teams attempted
 
     Raises:
-        InvalidInputError: If neither team nor all_teams is specified.
+        If neither team nor all_teams is specified.
     """
     output.mkdir(parents=True, exist_ok=True)
     comps = [c.strip() for c in competitions if c.strip()] if competitions else []
@@ -215,8 +215,8 @@ def cache_teams(
     """Cache team data for specified competitions.
 
     Args:
-        competitions (list[str]): List of competition codes.
-        output (Path): Path to cache the team data.
+        competitions: List of competition codes.
+        output: Path to cache the team data.
     """
     repo = FootballDataRepository()
     comps = [c.strip() for c in competitions if c.strip()]
@@ -228,11 +228,11 @@ def get_team_info(team_name: str, cache_path: Path = CACHE_PATH) -> tuple[str, s
     """Get the primary league and short name for a given team.
 
     Args:
-        team_name (str): Name of the team.
-        cache_path (Path): Path to the team cache file.
+        team_name: Name of the team.
+        cache_path: Path to the team cache file.
 
     Returns:
-        tuple[str, str]: The primary league and short name of the team.
+        The primary league and short name of the team.
 
     Raises:
         TeamNotFoundError: If the team is not found in the cache.

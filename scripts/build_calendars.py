@@ -17,10 +17,10 @@ def load_pl_teams(cache_path: Path) -> list[str]:
     """Load Premier League teams from the cache file.
 
     Args:
-        cache_path (Path): Path to the cache file.
+        cache_path: Path to the cache file.
 
     Returns:
-        list[str]: List of Premier League team names.
+        List of Premier League team names.
     """
     try:
         with open(cache_path) as f:
@@ -38,7 +38,11 @@ def load_pl_teams(cache_path: Path) -> list[str]:
 
 
 def build_calendars(teams: list[str]):
-    """Build calendar files for the specified teams and competitions."""
+    """Build calendar files for the specified teams and competitions.
+
+    Args:
+        teams: List of team names to build calendars for.
+    """
     calendars_dir = Path("public/calendars")
 
     result = build(

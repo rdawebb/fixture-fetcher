@@ -15,11 +15,11 @@ def apply_overrides(fixtures: List[Fixture], overrides_path: Path) -> int:
     """Apply overrides from a YAML file to the list of fixtures.
 
     Args:
-        fixtures (List[Fixture]): The list of Fixture objects to apply overrides to.
-        overrides_path (Path): The path to the YAML file containing overrides.
+        fixtures: The list of Fixture objects to apply overrides to.
+        overrides_path: The path to the YAML file containing overrides.
 
     Returns:
-        int: The number of overrides applied.
+        The number of overrides applied.
     """
     if not overrides_path or not overrides_path.exists():
         logger.warning("Overrides file does not exist")
@@ -63,12 +63,12 @@ def enrich_all(
     """Enrich fixtures with TV info from club ICS calendars and apply overrides.
 
     Args:
-        fixtures (List[Fixture]): The list of Fixture objects to enrich.
-        club_ics_urls (Optional[str]): Path to YAML file with club ICS URLs.
-        overrides_path (Optional[Path]): Path to YAML file with overrides.
+        fixtures: The list of Fixture objects to enrich.
+        club_ics_urls: Path to YAML file with club ICS URLs.
+        overrides_path: Path to YAML file with overrides.
 
     Returns:
-        dict: A summary of the enrichment process.
+        A summary of the enrichment process.
     """
     before_tv = sum(1 for f in fixtures if (f.tv or "").strip())
     applied = 0

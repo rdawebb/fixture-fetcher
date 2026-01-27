@@ -77,16 +77,7 @@ jobs:
           PYTHONPATH: ${{ github.workspace }}
         run: |
           uv run scripts/compare_calendars.py
-
-          if [ -d "public-old" ]; then
-            if diff -r static/ public-old/ > /dev/null 2>&1; then
-              echo "static_changed=false" >> $GITHUB_OUTPUT
-            else
-              echo "static_changed=true" >> $GITHUB_OUTPUT
-            fi
-          else
-            echo "static_changed=true" >> $GITHUB_OUTPUT
-          fi
+          uv run scripts/compare_static_files.py
 
       - name: Save cache
         uses: actions/cache@v4
