@@ -16,6 +16,9 @@ def compare_directories(old_dir: Path | None, new_dir: Path | None) -> bool:
     Returns:
         True if there are differences, False if identical.
     """
+    if old_dir is None and new_dir is None:
+        return False
+
     if (
         old_dir is None
         or new_dir is None
@@ -42,12 +45,6 @@ def compare_directories(old_dir: Path | None, new_dir: Path | None) -> bool:
 if __name__ == "__main__":
     old_dir = Path("public-old")
     new_dir = Path("public")
-
-    # Check for changes excluding the calendars directory
-    has_changes = compare_directories(
-        old_dir / "calendars" if (old_dir / "calendars").exists() else None,
-        new_dir / "calendars" if (new_dir / "calendars").exists() else None,
-    )
 
     # Check static files
     static_changed = False
