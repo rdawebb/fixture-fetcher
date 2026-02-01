@@ -41,7 +41,7 @@ SUMMARY:Newcastle vs Man United
 DTSTART;TZID=Europe/London:20260304T201500
 DTEND;TZID=Europe/London:20260304T221500
 UID:538072@fixture-fetcher
-DESCRIPTION:PL | Matchday 29
+DESCRIPTION:PL | TNT Sports | Matchday 29
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Man United vs Aston Villa
@@ -55,7 +55,7 @@ SUMMARY:Bournemouth vs Man United
 DTSTART;TZID=Europe/London:20260320T200000
 DTEND;TZID=Europe/London:20260320T220000
 UID:538085@fixture-fetcher
-DESCRIPTION:PL | Matchday 31
+DESCRIPTION:PL | Sky Sports | Matchday 31
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Man United vs Leeds United
