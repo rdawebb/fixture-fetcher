@@ -512,8 +512,8 @@ class TestCLIEndToEnd:
 
         with patch("app.cli.Path") as mock_path:
             # Mock the cache path to use our temp directory
-            mock_path.side_effect = (
-                lambda p: Path(cache_dir) / p if isinstance(p, str) else Path(p)
+            mock_path.side_effect = lambda p: (
+                Path(cache_dir) / p if isinstance(p, str) else Path(p)
             )
 
             build(
