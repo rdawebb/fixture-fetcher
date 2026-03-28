@@ -28,7 +28,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "rust-just>=1.48,<2.0.0",
+    "rust-just>=1.48.1,<2.0.0",
     "prek>=0.3.8,<1.0.0",
     "pytest>=9.0.2,<10.0.0",
     "pytest-cov>=7.1.0,<8.0.0",
