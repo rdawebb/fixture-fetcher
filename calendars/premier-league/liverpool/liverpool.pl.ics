@@ -27,7 +27,7 @@ SUMMARY:Man United vs Liverpool
 DTSTART;TZID=Europe/London:20260503T153000
 DTEND;TZID=Europe/London:20260503T173000
 UID:538132@fixture-fetcher
-DESCRIPTION:PL | Matchday 35
+DESCRIPTION:PL | Sky Sports | Matchday 35
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Liverpool vs Chelsea
