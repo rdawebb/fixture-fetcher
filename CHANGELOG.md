@@ -27,7 +27,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Improved CLI output with team-specific logging during batch operations
 - Moved inline JavaScript from HTML into TypeScript module (`main.ts`)
 - Updated dependencies: rich→15.0.0
-- Updated development dependencies: prek→0.3.10, pytest→9.0.3, ruff→0.15.11, rust-just→1.50.0, ty→0.0.32
+- Updated development dependencies: prek→0.3.11, pytest→9.0.3, ruff→0.15.12, rust-just→1.50.0, ty→0.0.32
 - Improved web UX with separate copy-to-clipboard and download buttons
 - Enhanced instructions to explain new options
 - Added visual download icon
