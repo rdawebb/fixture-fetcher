@@ -20,7 +20,7 @@ SUMMARY:Man United vs Nottingham
 DTSTART;TZID=Europe/London:20260517T123000
 DTEND;TZID=Europe/London:20260517T143000
 UID:538152@fixture-fetcher
-DESCRIPTION:PL | Matchday 37
+DESCRIPTION:PL | Sky Sports | Matchday 37
 END:VEVENT
 BEGIN:VEVENT
 SUMMARY:Brighton Hove vs Man United
