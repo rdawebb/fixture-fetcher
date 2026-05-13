@@ -26,8 +26,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Enhanced build workflow to compile TypeScript and bundle static assets
 - Improved CLI output with team-specific logging during batch operations
 - Moved inline JavaScript from HTML into TypeScript module (`main.ts`)
-- Updated dependencies: rich→15.0.0
-- Updated development dependencies: prek→0.3.11, pytest→9.0.3, ruff→0.15.12, rust-just→1.50.0, ty→0.0.33
+- Updated dependencies: icalendar→7.1.0, requests→2.34.0, rich→15.0.0, urllib3→2.7.0
+- Updated development dependencies: prek→0.3.13, pytest→9.0.3, ruff→0.15.12, rust-just→1.51.0, ty→0.0.35
 - Improved web UX with separate copy-to-clipboard and download buttons
 - Enhanced instructions to explain new options
 - Added visual download icon
