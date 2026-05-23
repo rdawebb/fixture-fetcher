@@ -3,8 +3,6 @@
 import logging
 from typing import Any, Optional
 
-## API Errors
-
 
 class APIError(Exception):
     """Base class for API errors.
@@ -102,9 +100,6 @@ class UnknownAPIError(APIError):
     """Raised for unknown API errors."""
 
     LOG_LEVEL = "error"
-
-
-## Application Errors
 
 
 class ApplicationError(Exception):

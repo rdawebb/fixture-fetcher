@@ -8,9 +8,9 @@ from icalendar import Calendar
 
 from logic.calendar.formatter import EventFormatter
 from logic.fixtures.models import Fixture
-from utils import get_logger
+from utils import FFLogger
 
-logger = get_logger(__name__)
+logger = FFLogger.get_logger(__name__)
 
 
 class CalendarBuilder:

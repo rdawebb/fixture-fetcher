@@ -6,9 +6,9 @@ import json
 from pathlib import Path
 from typing import Any
 
-from utils import get_logger
+from utils import FFLogger
 
-logger = get_logger(__name__)
+logger = FFLogger.get_logger(__name__)
 
 
 def generate_manifest(calendars_dir: Path, output_file: Path) -> None:

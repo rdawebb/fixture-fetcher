@@ -6,9 +6,9 @@ from typing import List, Optional
 import yaml
 
 from logic.fixtures.models import Fixture
-from utils import get_logger
+from utils import FFLogger
 
-logger = get_logger(__name__)
+logger = FFLogger.get_logger(__name__)
 
 
 def apply_overrides(fixtures: List[Fixture], overrides_path: Path) -> int:

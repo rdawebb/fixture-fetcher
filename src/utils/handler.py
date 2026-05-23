@@ -1,9 +1,8 @@
 """Centralised error handling for the application."""
 
-from utils.errors import APIError, ApplicationError, ConfigurationError
-from utils.logging import get_logger
+from utils import APIError, ApplicationError, ConfigurationError, FFLogger
 
-logger = get_logger(__name__)
+logger = FFLogger.get_logger(__name__)
 
 
 def handle_error(error: Exception) -> int:

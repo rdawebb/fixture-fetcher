@@ -14,13 +14,13 @@ from logic.fixtures.enrich import enrich_all
 from logic.fixtures.filters import Filter
 from utils import (
     CalendarError,
+    FFLogger,
     InvalidInputError,
     TeamNotFoundError,
     TeamsCacheError,
-    get_logger,
 )
 
-logger = get_logger(__name__)
+logger = FFLogger.get_logger(__name__)
 
 config = get_config()
 API_RATE_LIMIT_DELAY = float(config.get("API_RATE_LIMIT_DELAY", "6.0"))

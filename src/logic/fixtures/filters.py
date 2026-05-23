@@ -6,9 +6,9 @@ from datetime import datetime
 from typing import Iterable, List
 
 from logic.fixtures.models import Fixture
-from utils import DataProcessingError, InvalidInputError, get_logger
+from utils import DataProcessingError, FFLogger, InvalidInputError
 
-logger = get_logger(__name__)
+logger = FFLogger.get_logger(__name__)
 
 
 class Filter:

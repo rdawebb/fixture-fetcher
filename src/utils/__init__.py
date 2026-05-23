@@ -2,6 +2,7 @@
 
 from .errors import (
     APIError,
+    ApplicationError,
     AuthenticationError,
     CalendarError,
     ConfigurationError,
@@ -10,6 +11,8 @@ from .errors import (
     ICSReadError,
     ICSWriteError,
     InvalidInputError,
+    NotFoundError,
+    ParsingError,
     RateLimitError,
     ServerError,
     ServiceUnavailableError,
@@ -19,10 +22,11 @@ from .errors import (
     UnknownAPIError,
     ValidationError,
 )
-from .logging import get_logger
+from .logging import FFLogger
 
 __all__ = [
     "APIError",
+    "ApplicationError",
     "AuthenticationError",
     "CalendarError",
     "ConfigurationError",
@@ -31,6 +35,8 @@ __all__ = [
     "ICSReadError",
     "ICSWriteError",
     "InvalidInputError",
+    "NotFoundError",
+    "ParsingError",
     "RateLimitError",
     "ServerError",
     "ServiceUnavailableError",
@@ -39,5 +45,5 @@ __all__ = [
     "TimeoutError",
     "UnknownAPIError",
     "ValidationError",
-    "get_logger",
+    "FFLogger",
 ]

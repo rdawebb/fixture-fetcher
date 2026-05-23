@@ -11,9 +11,10 @@ import yaml
 
 from backend.config import get_config
 from logic.fixtures.models import Fixture
-from utils.errors import (
+from utils import (
     AuthenticationError,
     ConnectionError,
+    FFLogger,
     NotFoundError,
     ParsingError,
     RateLimitError,
@@ -22,9 +23,8 @@ from utils.errors import (
     TimeoutError,
     UnknownAPIError,
 )
-from utils.logging import get_logger
 
-logger = get_logger(__name__)
+logger = FFLogger.get_logger(__name__)
 
 config = get_config()
 API = config["FOOTBALL_DATA_API"]

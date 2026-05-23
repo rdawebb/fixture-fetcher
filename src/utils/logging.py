@@ -2,55 +2,62 @@
 
 import logging
 import os
-from pathlib import Path
 from logging.handlers import RotatingFileHandler
+from pathlib import Path
 from typing import Optional
 
 
-def get_logger(
-    name: Optional[str] = None,
-    log_dir: Optional[str] = None,
-    log_file: Optional[str] = None,
-    log_level: Optional[str] = None,
-) -> logging.Logger:
-    """Configure centralised logging with file and stream handlers.
+class FFLogger:
+    """Centralised logging class for the application."""
 
-    Args:
-        name: Name of the logger.
-        log_dir: Directory for log files.
-        log_file: Path to the log file.
-        log_level: Logging level (e.g., DEBUG, INFO).
+    _configured: bool = False
 
-    Returns:
-        Configured logger instance.
-    """
-    if not getattr(get_logger, "_configured", False):
-        log_dir = log_dir or os.getenv("LOG_DIR") or "logs"
-        Path(log_dir).mkdir(parents=True, exist_ok=True)
+    @classmethod
+    def get_logger(
+        cls,
+        name: Optional[str] = None,
+        log_dir: Optional[str] = None,
+        log_file: Optional[str] = None,
+        log_level: Optional[str] = None,
+    ) -> logging.Logger:
+        """Configure centralised logging with file and stream handlers.
 
-        log_file = log_file or os.getenv("LOG_FILE") or "app.log"
-        log_path = Path(log_dir) / log_file
+        Args:
+            name: Name of the logger.
+            log_dir: Directory for log files.
+            log_file: Path to the log file.
+            log_level: Logging level (e.g., DEBUG, INFO).
 
-        log_level = (log_level or os.getenv("LOG_LEVEL") or "INFO").upper()
+        Returns:
+            Configured logger instance.
+        """
+        if not cls._configured:
+            log_dir = log_dir or os.getenv("LOG_DIR") or "logs"
+            Path(log_dir).mkdir(parents=True, exist_ok=True)
 
-        formatter = logging.Formatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S",
-        )
+            log_file = log_file or os.getenv("LOG_FILE") or "app.log"
+            log_path = Path(log_dir) / log_file
 
-        file_handler = RotatingFileHandler(
-            log_path, maxBytes=1 * 1024 * 1024, backupCount=5
-        )
-        file_handler.setFormatter(formatter)
+            log_level = (log_level or os.getenv("LOG_LEVEL") or "INFO").upper()
 
-        stream_handler = logging.StreamHandler()
-        stream_handler.setFormatter(formatter)
+            formatter = logging.Formatter(
+                "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+                datefmt="%Y-%m-%d %H:%M:%S",
+            )
 
-        logging.basicConfig(
-            level=getattr(logging, log_level, logging.INFO),
-            handlers=[file_handler, stream_handler],
-        )
+            file_handler = RotatingFileHandler(
+                log_path, maxBytes=1 * 1024 * 1024, backupCount=5
+            )
+            file_handler.setFormatter(formatter)
 
-        get_logger._configured = True  # type: ignore[attr-defined]
+            stream_handler = logging.StreamHandler()
+            stream_handler.setFormatter(formatter)
 
-    return logging.getLogger(name)
+            logging.basicConfig(
+                level=getattr(logging, log_level, logging.INFO),
+                handlers=[file_handler, stream_handler],
+            )
+
+            cls._configured = True
+
+        return logging.getLogger(name)

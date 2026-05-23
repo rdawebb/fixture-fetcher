@@ -7,9 +7,9 @@ from typing import Iterable
 
 from logic.calendar.builder import CalendarBuilder
 from logic.fixtures.models import Fixture
-from utils import ICSWriteError, get_logger
+from utils import FFLogger, ICSWriteError
 
-logger = get_logger(__name__)
+logger = FFLogger.get_logger(__name__)
 
 
 class ICSWriter:

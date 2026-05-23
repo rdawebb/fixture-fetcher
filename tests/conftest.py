@@ -8,8 +8,8 @@ from unittest.mock import Mock, patch
 import pytest
 import yaml
 
-from logic.fixtures.models import Fixture
 from backend.api.football_data import FDClient
+from logic.fixtures.models import Fixture
 
 
 @pytest.fixture
@@ -368,7 +368,7 @@ def snapshot_from_fixture(fixture_with_all_fields, tmp_path):
     Returns:
         The loaded snapshot.
     """
-    from backend.storage.snapshot import save_snapshot, load_snapshot
+    from backend.storage.snapshot import load_snapshot, save_snapshot
 
     snapshot_path = tmp_path / "snapshot.json"
     save_snapshot([fixture_with_all_fields], snapshot_path)

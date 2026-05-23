@@ -6,9 +6,9 @@ from typing import Set
 
 from icalendar import Calendar
 
-from utils import DataProcessingError, ICSReadError, get_logger
+from utils import DataProcessingError, FFLogger, ICSReadError
 
-logger = get_logger(__name__)
+logger = FFLogger.get_logger(__name__)
 
 
 class CalendarComparison:

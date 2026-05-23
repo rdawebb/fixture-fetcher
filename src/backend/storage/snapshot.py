@@ -8,9 +8,9 @@ from pathlib import Path
 from typing import Dict, List, Tuple, cast
 
 from logic.fixtures.models import Fixture
-from utils import DataProcessingError, get_logger
+from utils import DataProcessingError, FFLogger
 
-logger = get_logger(__name__)
+logger = FFLogger.get_logger(__name__)
 
 
 def _fixture_to_dict(fixture: Fixture) -> dict:
