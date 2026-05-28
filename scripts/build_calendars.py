@@ -1,13 +1,14 @@
 """Build script for generating fixture calendars"""
 
-from pathlib import Path
-import sys
 import argparse
+import sys
+from pathlib import Path
+
 import yaml
 
 from app.cli import build
-from utils.manifest import generate_manifest
 from backend.config import get_config
+from utils.manifest import generate_manifest
 
 config = get_config()
 CACHE_PATH = config.get("CACHE_PATH", Path("data/cache/teams.yaml"))
@@ -75,9 +76,15 @@ def build_calendars(teams: list[str]):
 
         # Exit success if any succeeded (allows partial deployment)
         sys.exit(0)
+
     else:
-        print("\n❌ Failed to build any calendars")
-        sys.exit(1)
+        if result["failed"]:
+            print("\n❌ Failed to build any calendars")
+            sys.exit(1)
+
+        # No failures, but no calendars to build (no upcoming fixtures)
+        print("\nℹ️ No calendars to build")
+        sys.exit(0)
 
 
 if __name__ == "__main__":

@@ -4,7 +4,6 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-
 ## [0.4.0]
 
 ### Added
@@ -32,6 +31,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Enhanced instructions to explain new options
 - Added visual download icon
 
+### Fixed
+
+- Exit code handling in `build_calendars.py` when no calendars are built due to no upcoming fixtures
 
 ## [0.3.0] - 2026/01/10
 
@@ -63,7 +65,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Cache validation to prevent corrupted cache data
 - API error handling for edge cases with null status codes
 
-
 ## [0.2.0] - 2025-12-27
 
 ### Added
@@ -90,7 +91,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - GitHub Actions workflow permissions and reliability
 - iCal compatibility issues with event descriptions
 
-
 ## [0.1.0] - 2025-11-07
 
 ### Added
@@ -103,7 +103,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Data models for fixture representation
 - Centralised error handling with custom exception classes
 - Comprehensive logging setup
-
 
 [Unreleased]: https://github.com/rdawebb/fixture-fetcher/compare/v0.4.0...HEAD
 [0.4.0]: https://github.com/rdawebb/fixture-fetcher/compare/v0.3.0...v0.4.0

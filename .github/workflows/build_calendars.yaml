@@ -3,7 +3,7 @@ name: Build fixture calendars
 on:
   # Run once a day + allow manual trigger
   schedule:
-    - cron: "0 5 * * *"     # 05:00 UTC daily
+    - cron: "0 5 * * *" # 05:00 UTC daily
   workflow_dispatch:
 
 jobs:
@@ -14,7 +14,7 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Restore cache
         uses: actions/cache@v4
@@ -25,7 +25,7 @@ jobs:
             team-cache-${{ runner.os }}-
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -38,9 +38,9 @@ jobs:
           uv sync --all-extras
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: "20"
+          node-version: "24"
 
       - name: Install Node.js dependencies
         run: |
