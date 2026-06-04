@@ -52,6 +52,7 @@ jobs:
           git clone --depth 1 --branch gh-pages https://github.com/${{ github.repository }}.git public-old || true
 
       - name: Generate ICS calendars
+        id: generate
         env:
           FOOTBALL_DATA_API_TOKEN: ${{ secrets.FOOTBALL_DATA_API_TOKEN }}
           PYTHONPATH: ${{ github.workspace }}
@@ -61,6 +62,10 @@ jobs:
 
       - name: Validate build output
         run: |
+          if [ "${{ steps.generate.outputs.no_fixtures }}" = "true" ]; then
+            echo "⏸️ Off-season: no upcoming fixtures, skipping calendar validation"
+            exit 0
+          fi
           if [ -z "$(find public/calendars -type f -name '*.ics' 2>/dev/null)" ]; then
             echo "❌ No calendars were generated"
             exit 1

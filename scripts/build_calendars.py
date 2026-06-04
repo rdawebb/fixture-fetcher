@@ -1,6 +1,7 @@
 """Build script for generating fixture calendars"""
 
 import argparse
+import os
 import sys
 from pathlib import Path
 
@@ -77,14 +78,19 @@ def build_calendars(teams: list[str]):
         # Exit success if any succeeded (allows partial deployment)
         sys.exit(0)
 
-    else:
-        if result["failed"]:
-            print("\n❌ Failed to build any calendars")
-            sys.exit(1)
-
-        # No failures, but no calendars to build (no upcoming fixtures)
-        print("\nℹ️ No calendars to build")
+    elif not result["failed"]:
+        print(
+            "\n⏸️ No upcoming fixtures found - off-season or schedule not yet published"
+        )
+        github_output = os.environ.get("GITHUB_OUTPUT")
+        if github_output:
+            with open(github_output, "a") as f:
+                f.write("no_fixtures=true\n")
         sys.exit(0)
+
+    else:
+        print("\n❌ Failed to build any calendars")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
