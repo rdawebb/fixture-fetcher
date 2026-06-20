@@ -66,8 +66,8 @@ class TestCalendarComparison:
 
         return _create_ics_file
 
-    def test_initialization(self, comparison):
-        """Test CalendarComparison initialization."""
+    def test_initialisation(self, comparison):
+        """Test CalendarComparison initialisation."""
         assert comparison is not None
         assert hasattr(comparison, "get_upcoming_events")
         assert hasattr(comparison, "compare_calendars")
