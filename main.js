@@ -1,46 +1,55 @@
 "use strict";
 function copyToClipboard(text) {
-    navigator.clipboard.writeText(text).then(() => {
-        alert('Calendar URL copied to clipboard!');
-    }).catch(err => {
-        alert('Failed to copy link: ' + err);
+    navigator.clipboard
+        .writeText(text)
+        .then(() => {
+        alert("Calendar URL copied to clipboard!");
+    })
+        .catch((err) => {
+        alert("Failed to copy link: " + err);
     });
 }
 function downloadIcs(fileUrl) {
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = fileUrl;
-    link.download = '';
+    link.download = "";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 }
 async function loadCalendars() {
-    const contentDiv = document.getElementById('content');
-    const errorDiv = document.getElementById('error');
-    const loadingDiv = document.getElementById('loading');
+    const contentDiv = document.getElementById("content");
+    const errorDiv = document.getElementById("error");
+    const loadingDiv = document.getElementById("loading");
     try {
-        const response = await fetch('calendars.json');
+        const response = await fetch("calendars.json");
         if (!response.ok) {
             throw new Error(`Failed to load calendars: ${response.status}`);
         }
         const data = await response.json();
         if (!data.calendars || data.calendars.length === 0) {
             if (loadingDiv)
-                loadingDiv.textContent = 'No calendars available yet.';
+                loadingDiv.textContent = "No calendars available yet.";
             return;
         }
         if (loadingDiv)
-            loadingDiv.style.display = 'none';
+            loadingDiv.style.display = "none";
         if (contentDiv) {
-            contentDiv.innerHTML = data.calendars.map((league) => `
+            contentDiv.innerHTML = data.calendars
+                .map((league) => `
 							<div class="league-section">
 								<h2>${league.league}</h2>
-								${league.teams.map((team) => `
+								${league.teams
+                .map((team) => `
 									<div class="team-section">
 										<div class="team-name">${team.name}</div>
 										<ul class="competitions-list">
-											${team.competitions.map((comp) => {
-                const calendarUrl = location.origin + '/' + comp.url.replace(/^\/+/, '');
+											${team.competitions
+                .map((comp) => {
+                const calendarUrl = location.origin +
+                    location.pathname.replace(/\/$/, "") +
+                    "/" +
+                    comp.url.replace(/^\/+/, "");
                 return `
 													<li>
 														<button onclick="copyToClipboard('${calendarUrl}')">${comp.name}</button>
@@ -52,25 +61,30 @@ async function loadCalendars() {
 														</button>
 													</li>
 												`;
-            }).join('')}
+            })
+                .join("")}
 										</ul>
 									</div>
-								`).join('')}
+								`)
+                .join("")}
 							</div>
-						`).join('');
+						`)
+                .join("");
         }
     }
     catch (err) {
         if (loadingDiv)
-            loadingDiv.style.display = 'none';
+            loadingDiv.style.display = "none";
         if (errorDiv) {
-            errorDiv.className = 'error';
-            const errorMessage = (err && typeof err === 'object' && 'message' in err) ? err.message : String(err);
+            errorDiv.className = "error";
+            const errorMessage = err && typeof err === "object" && "message" in err
+                ? err.message
+                : String(err);
             errorDiv.innerHTML = `<strong>Error loading calendars:</strong> ${errorMessage}`;
         }
-        console.error('Error loading calendars:', err);
+        console.error("Error loading calendars:", err);
     }
 }
 // Load calendars when page loads
-document.addEventListener('DOMContentLoaded', loadCalendars);
+document.addEventListener("DOMContentLoaded", loadCalendars);
 //# sourceMappingURL=main.js.map
