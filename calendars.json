@@ -179,6 +179,17 @@
               "url": "calendars/premier-league/sunderland/sunderland.pl.ics"
             }
           ]
+        },
+        {
+          "name": "Tottenham",
+          "slug": "tottenham",
+          "competitions": [
+            {
+              "code": "PL",
+              "name": "Premier League",
+              "url": "calendars/premier-league/tottenham/tottenham.pl.ics"
+            }
+          ]
         }
       ]
     }
