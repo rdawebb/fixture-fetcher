@@ -137,6 +137,17 @@
           ]
         },
         {
+          "name": "Man United",
+          "slug": "man-united",
+          "competitions": [
+            {
+              "code": "PL",
+              "name": "Premier League",
+              "url": "calendars/premier-league/man-united/man-united.pl.ics"
+            }
+          ]
+        },
+        {
           "name": "Newcastle",
           "slug": "newcastle",
           "competitions": [
