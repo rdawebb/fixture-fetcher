@@ -5,17 +5,6 @@
       "slug": "premier-league",
       "teams": [
         {
-          "name": "Arsenal",
-          "slug": "arsenal",
-          "competitions": [
-            {
-              "code": "PL",
-              "name": "Premier League",
-              "url": "calendars/premier-league/arsenal/arsenal.pl.ics"
-            }
-          ]
-        },
-        {
           "name": "Aston Villa",
           "slug": "aston-villa",
           "competitions": [
@@ -23,17 +12,6 @@
               "code": "PL",
               "name": "Premier League",
               "url": "calendars/premier-league/aston-villa/aston-villa.pl.ics"
-            }
-          ]
-        },
-        {
-          "name": "Bournemouth",
-          "slug": "bournemouth",
-          "competitions": [
-            {
-              "code": "PL",
-              "name": "Premier League",
-              "url": "calendars/premier-league/bournemouth/bournemouth.pl.ics"
             }
           ]
         },
