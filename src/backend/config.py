@@ -65,4 +65,7 @@ def get_config() -> dict:
         "API_RATE_LIMIT_DELAY": API_RATE_LIMIT_DELAY,
         "CACHE_DIR": str(CACHE_DIR),
         "CACHE_PATH": str(CACHE_PATH),
+        "TV_OVERRIDES_PATH": str(TV_OVERRIDES_PATH),
+        # Copied so consumers can't mutate the module-level registry
+        "FD_COMPETITIONS": dict(FD_COMPETITIONS),
     }

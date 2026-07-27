@@ -14,18 +14,23 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
+
+      # Season-scoped so the team list can never outlive a promotion/relegation
+      # cycle: Actions caches are immutable, so a static key would pin the very
+      # first run's teams.yaml forever. Rolls over on 1 July.
+      - name: Compute season
+        id: season
+        run: echo "season=$(date -d '-6 months' +%Y)" >> "$GITHUB_OUTPUT"
 
       - name: Restore cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: data/cache
-          key: team-cache-${{ runner.os }}
-          restore-keys: |
-            team-cache-${{ runner.os }}-
+          key: team-cache-${{ runner.os }}-${{ steps.season.outputs.season }}
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
@@ -84,10 +89,10 @@ jobs:
           uv run scripts/compare_static_files.py
 
       - name: Save cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: data/cache
-          key: team-cache-${{ runner.os }}
+          key: team-cache-${{ runner.os }}-${{ steps.season.outputs.season }}
 
       - name: Deploy to GitHub Pages
         if: success() && (steps.changes.outputs.has_changes == 'true' || steps.changes.outputs.static_changed == 'true')

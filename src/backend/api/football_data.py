@@ -177,6 +177,9 @@ class FDClient:
                     all_teams[league_name][team["name"]] = {
                         "id": team["id"],
                         "short_name": team.get("shortName", team["name"]),
+                        "venue": team.get("venue"),
+                        "club_colors": team.get("clubColors"),
+                        "crest": team.get("crest"),
                     }
 
             except Exception as e:
@@ -186,10 +189,16 @@ class FDClient:
                 ) from e
 
         if all_teams:
-            self.cache = all_teams
+            # Merge per league so refreshing one competition leaves the others intact
+            for league_name, teams in all_teams.items():
+                self.cache[league_name] = teams
+
             self._save_cache()
-            logger.info(f"Refreshed team cache with {len(all_teams)} teams")
-            print(f"🔄 Refreshed team cache with {len(all_teams)} teams")
+            num_teams = sum(len(teams) for teams in all_teams.values())
+            logger.info(
+                f"Refreshed team cache with {num_teams} teams across {len(all_teams)} league(s)"
+            )
+            print(f"🔄 Refreshed team cache with {num_teams} teams")
 
         else:
             logger.warning("No teams fetched to refresh cache")
@@ -287,6 +296,9 @@ class FDClient:
             logger.error(
                 f"ConnectionError: Network error while fetching team ID for '{team_name}': {e}"
             )
+            raise ConnectionError(
+                f"Network error while fetching team ID for '{team_name}'"
+            ) from e
 
         except Exception as e:
             raise ConnectionError(

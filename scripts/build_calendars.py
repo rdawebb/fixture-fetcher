@@ -7,12 +7,27 @@ from pathlib import Path
 
 import yaml
 
-from app.cli import build
+from app.cli import build, cache_teams
 from backend.config import get_config
 from utils.manifest import generate_manifest
 
 config = get_config()
 CACHE_PATH = config.get("CACHE_PATH", Path("data/cache/teams.yaml"))
+FD_COMPETITIONS = config.get("FD_COMPETITIONS", {"PL": "Premier League"})
+
+
+def refresh_team_cache() -> None:
+    """Refresh the cached team list from the API.
+
+    Runs before the team list is read so promotions/relegations are picked up.
+    A failure here is not fatal: the build falls back to the existing cache.
+    """
+    print("🔄 Refreshing team cache...")
+    try:
+        cache_teams(list(FD_COMPETITIONS.keys()))
+
+    except Exception as e:  # noqa: BLE001 - stale teams beat no build at all
+        print(f"⚠️  Could not refresh team cache, falling back to cached teams: {e}")
 
 
 def load_pl_teams(cache_path: Path) -> list[str]:
@@ -103,6 +118,9 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
+
+    if not args.teams:
+        refresh_team_cache()
 
     teams_to_build = args.teams if args.teams else load_pl_teams(CACHE_PATH)
 

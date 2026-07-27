@@ -176,6 +176,59 @@ class TestFDClientRefreshCache:
             assert client.cache["Premier League"]["Team A"]["short_name"] == "TA"
             assert mock_cache_path.exists()
 
+    def test_refresh_team_cache_merges_other_leagues(
+        self, mock_cache_path, mock_api_response
+    ):
+        """Test refreshing one competition leaves other cached leagues intact."""
+        with patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"):
+            client = FDClient()
+            client.cache = {
+                "Championship": {
+                    "Team C": {"id": 3, "short_name": "TC"},
+                }
+            }
+
+            mock_response = mock_api_response(
+                200, {"teams": [{"name": "Team A", "id": 1, "shortName": "TA"}]}
+            )
+
+            with patch.object(client.session, "get", return_value=mock_response):
+                client.refresh_team_cache(competitions=["PL"])
+
+            assert client.cache["Championship"]["Team C"]["id"] == 3
+            assert client.cache["Premier League"]["Team A"]["id"] == 1
+
+    def test_refresh_team_cache_stores_team_metadata(
+        self, mock_cache_path, mock_api_response
+    ):
+        """Test venue, colours and crest are kept from the teams response."""
+        with patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"):
+            client = FDClient()
+
+            mock_response = mock_api_response(
+                200,
+                {
+                    "teams": [
+                        {
+                            "name": "Manchester United",
+                            "id": 66,
+                            "shortName": "Man Utd",
+                            "venue": "Old Trafford",
+                            "clubColors": "Red / White",
+                            "crest": "https://example.com/66.png",
+                        }
+                    ]
+                },
+            )
+
+            with patch.object(client.session, "get", return_value=mock_response):
+                client.refresh_team_cache(competitions=["PL"])
+
+            cached = client.cache["Premier League"]["Manchester United"]
+            assert cached["venue"] == "Old Trafford"
+            assert cached["club_colors"] == "Red / White"
+            assert cached["crest"] == "https://example.com/66.png"
+
     def test_refresh_team_cache_all_competitions(
         self, mock_cache_path, mock_api_response
     ):
@@ -280,6 +333,25 @@ class TestFDClientGetTeamId:
                 pytest.raises(ConnectionError),
             ):
                 client.get_team_id_by_name("Manchester United")
+
+    def test_get_team_id_requests_connection_error(self, mock_cache_path):
+        """Test a requests ConnectionError surfaces, not an UnboundLocalError."""
+        import requests
+
+        with patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"):
+            client = FDClient()
+
+            with (
+                patch.object(
+                    client.session,
+                    "get",
+                    side_effect=requests.exceptions.ConnectionError("Network error"),
+                ),
+                pytest.raises(ConnectionError) as exc_info,
+            ):
+                client.get_team_id_by_name("Manchester United")
+
+            assert "Manchester United" in str(exc_info.value)
 
 
 class TestFDClientFetchFixtures:
