@@ -1,5 +1,7 @@
 """Tests for the ICS writer module."""
 
+from datetime import datetime, timezone
+
 from icalendar import Calendar
 
 from logic.calendar.ics_writer import ICSWriter
@@ -50,10 +52,15 @@ class TestICSWriter:
             cal = Calendar.from_ical(f.read())
 
         events = [c for c in cal.walk() if c.name == "VEVENT"]
-        assert len(events) == len(sample_fixtures)
+        dated = [f for f in sample_fixtures if f.utc_kickoff is not None]
+        assert len(events) == len(dated)
 
-    def test_fixture_without_kickoff(self, tmp_path):
-        """Test handling fixture without kickoff time."""
+    def test_fixture_without_kickoff_is_skipped(self, tmp_path):
+        """Test that a fixture with no kickoff date produces no event.
+
+        A VEVENT without DTSTART is invalid per RFC 5545, and Fixture carries no
+        other date to fall back on, so such fixtures are omitted entirely.
+        """
         fixture = Fixture(
             id="999",
             competition="FA Cup",
@@ -72,9 +79,72 @@ class TestICSWriter:
         writer = ICSWriter([fixture])
         writer.write(output_path)
 
-        content = output_path.read_text()
-        assert "Team A vs Team B (TBC)" in content
-        assert "Kickoff TBC" in content
+        with open(output_path, "rb") as f:
+            cal = Calendar.from_ical(f.read())
+
+        assert [c for c in cal.walk() if c.name == "VEVENT"] == []
+        assert "Team A" not in output_path.read_text()
+
+    def test_dateless_fixture_does_not_suppress_others(self, sample_fixture, tmp_path):
+        """Test that a dateless fixture doesn't stop valid ones being written."""
+        dateless = Fixture(
+            id="999",
+            competition="FA Cup",
+            competition_code="FA",
+            matchday=None,
+            utc_kickoff=None,
+            home_team="Team A",
+            away_team="Team B",
+            venue=None,
+            status="SCHEDULED",
+            tv=None,
+            is_home=True,
+        )
+
+        output_path = tmp_path / "test.ics"
+        ICSWriter([dateless, sample_fixture]).write(output_path)
+
+        with open(output_path, "rb") as f:
+            cal = Calendar.from_ical(f.read())
+
+        events = [c for c in cal.walk() if c.name == "VEVENT"]
+        assert len(events) == 1
+        assert str(events[0]["UID"]) == "12345@fixture-fetcher"
+
+    def test_events_have_required_rfc5545_properties(self, sample_fixtures, tmp_path):
+        """Test that every written VEVENT carries the properties RFC 5545 requires."""
+        output_path = tmp_path / "test.ics"
+        ICSWriter(sample_fixtures).write(output_path)
+
+        with open(output_path, "rb") as f:
+            cal = Calendar.from_ical(f.read())
+
+        events = [c for c in cal.walk() if c.name == "VEVENT"]
+        assert events
+
+        for event in events:
+            # UID and DTSTAMP are mandatory for every VEVENT; DTSTART is
+            # mandatory for a calendar without a METHOD property
+            assert event.get("UID"), "VEVENT missing UID"
+            assert event.get("DTSTAMP"), "VEVENT missing DTSTAMP"
+            assert event.get("DTSTART"), "VEVENT missing DTSTART"
+
+    def test_dtstamp_is_utc_and_current(self, sample_fixture, tmp_path):
+        """Test that DTSTAMP is written as an aware UTC timestamp."""
+        # ICS serialises to whole seconds, so compare against a truncated bound
+        before = datetime.now(timezone.utc).replace(microsecond=0)
+
+        output_path = tmp_path / "test.ics"
+        ICSWriter([sample_fixture]).write(output_path)
+
+        with open(output_path, "rb") as f:
+            cal = Calendar.from_ical(f.read())
+
+        event = next(c for c in cal.walk() if c.name == "VEVENT")
+        dtstamp = event["DTSTAMP"].dt
+
+        assert dtstamp.tzinfo is not None
+        assert before <= dtstamp <= datetime.now(timezone.utc)
 
     def test_write_creates_parent_directories(self, tmp_path):
         """Test that write creates parent directories if they don't exist."""

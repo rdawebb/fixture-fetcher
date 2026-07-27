@@ -1,6 +1,6 @@
 """Compare two ICS calendar files for upcoming events"""
 
-from datetime import datetime
+from datetime import date, datetime, time
 from pathlib import Path
 
 from icalendar import Calendar
@@ -8,6 +8,24 @@ from icalendar import Calendar
 from utils import DataProcessingError, FFLogger, ICSReadError
 
 logger = FFLogger.get_logger(__name__)
+
+
+def _as_datetime(value: date | datetime) -> datetime:
+    """Normalise an ICS DTSTART value to an aware datetime.
+
+    All-day events carry a plain `date`, which has no `astimezone`. Treat
+    those as starting at local midnight so they compare against timed events.
+
+    Args:
+        value: The `DTSTART` value, either a date or a datetime.
+
+    Returns:
+        A timezone-aware datetime.
+    """
+    if not isinstance(value, datetime):
+        value = datetime.combine(value, time.min)
+
+    return value.astimezone()
 
 
 class CalendarComparison:
@@ -37,11 +55,15 @@ class CalendarComparison:
             for event in cal.walk():
                 if event.name == "VEVENT":
                     dtstart = event.get("DTSTART")
-                    if dtstart is not None and dtstart.dt.astimezone() > now:
+                    if dtstart is None:
+                        continue
+
+                    start = _as_datetime(dtstart.dt)
+                    if start > now:
                         upcoming_events.add(
                             (
                                 str(event.get("UID", "")),
-                                str(dtstart.dt.astimezone()),
+                                str(start),
                                 str(event.get("DESCRIPTION", "")),
                             )
                         )

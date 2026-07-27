@@ -349,6 +349,91 @@ class TestCalendarComparison:
 
         assert result is False
 
+    def test_get_upcoming_events_all_day_event(self, comparison, tmp_path):
+        """Test that an all-day event (date DTSTART) is read, not dropped.
+
+        `date` has no `astimezone`, so an unnormalised DTSTART raises and takes
+        the whole file out of the comparison.
+        """
+        ics_file = tmp_path / "allday.ics"
+        cal = Calendar()
+        cal.add("prodid", "-//Test//Test//EN")
+        cal.add("version", "2.0")
+
+        event = Event()
+        event.add("uid", "allday1")
+        event.add("summary", "All Day Match")
+        event.add("description", "TBC")
+        event.add("dtstart", (datetime.now(timezone.utc) + timedelta(days=3)).date())
+        cal.add_component(event)
+
+        ics_file.write_bytes(cal.to_ical())
+
+        events = comparison.get_upcoming_events(ics_file)
+
+        assert len(events) == 1
+        assert next(iter(events))[0] == "allday1"
+
+    def test_get_upcoming_events_past_all_day_event_excluded(
+        self, comparison, tmp_path
+    ):
+        """Test that a past all-day event is excluded like any past event."""
+        ics_file = tmp_path / "allday_past.ics"
+        cal = Calendar()
+        cal.add("prodid", "-//Test//Test//EN")
+        cal.add("version", "2.0")
+
+        event = Event()
+        event.add("uid", "allday_past")
+        event.add("summary", "Old Match")
+        event.add("dtstart", (datetime.now(timezone.utc) - timedelta(days=3)).date())
+        cal.add_component(event)
+
+        ics_file.write_bytes(cal.to_ical())
+
+        assert comparison.get_upcoming_events(ics_file) == set()
+
+    def test_compare_calendars_detects_change_alongside_all_day_event(
+        self, comparison, tmp_path
+    ):
+        """Test that a change is still detected in a file containing an all-day event.
+
+        Regression test: an all-day event used to raise, and the per-file error
+        handling then dropped every event in that file from both signatures, so
+        a real fixture change in the same file went undetected.
+        """
+        old_dir = tmp_path / "old"
+        new_dir = tmp_path / "new"
+        old_dir.mkdir()
+        new_dir.mkdir()
+
+        now = datetime.now(timezone.utc)
+
+        def write(path: Path, timed_start: datetime) -> None:
+            cal = Calendar()
+            cal.add("prodid", "-//Test//Test//EN")
+            cal.add("version", "2.0")
+
+            all_day = Event()
+            all_day.add("uid", "allday1")
+            all_day.add("summary", "TBC Match")
+            all_day.add("dtstart", (now + timedelta(days=5)).date())
+            cal.add_component(all_day)
+
+            timed = Event()
+            timed.add("uid", "timed1")
+            timed.add("summary", "Match")
+            timed.add("dtstart", timed_start)
+            timed.add("dtend", timed_start + timedelta(hours=2))
+            cal.add_component(timed)
+
+            path.write_bytes(cal.to_ical())
+
+        write(old_dir / "calendar.ics", now + timedelta(days=1))
+        write(new_dir / "calendar.ics", now + timedelta(days=2))
+
+        assert comparison.compare_calendars(old_dir, new_dir) is True
+
     def test_compare_calendars_handles_read_errors(
         self, comparison, create_ics_file, tmp_path
     ):

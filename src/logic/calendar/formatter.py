@@ -1,11 +1,14 @@
 """Module to format fixtures into iCalendar events."""
 
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 from icalendar import Event
 
 from logic.fixtures.models import Fixture
+from utils import FFLogger
+
+logger = FFLogger.get_logger(__name__)
 
 LONDON_TZ = ZoneInfo("Europe/London")
 
@@ -26,41 +29,45 @@ class EventFormatter:
         return f"{f.id}@fixture-fetcher"
 
     @classmethod
-    def format_event(cls, fixture: Fixture) -> Event:
+    def format_event(cls, fixture: Fixture) -> Event | None:
         """Format a Fixture object as an iCalendar Event.
 
         Args:
             fixture: The Fixture object to format.
 
         Returns:
-            An iCalendar Event object.
+            An iCalendar Event object, or None if the fixture has no kick-off
+            date and so cannot produce a valid VEVENT.
         """
+        if fixture.utc_kickoff is None:
+            logger.warning(
+                f"Skipping fixture {fixture.id} "
+                f"({fixture.home_team} vs {fixture.away_team}): no kick-off date"
+            )
+            return None
+
         event = Event()
         event.add("uid", cls._uid(fixture))
-        title = f"{fixture.home_team} vs {fixture.away_team}"
+        # Required by RFC 5545 for every VEVENT
+        event.add("dtstamp", datetime.now(timezone.utc))
 
-        if fixture.utc_kickoff:
-            start = fixture.utc_kickoff.astimezone(LONDON_TZ)
-            event.add("dtstart", start)
-            event.add("dtend", start + timedelta(hours=2))
-            event.add("summary", title)
+        start = fixture.utc_kickoff.astimezone(LONDON_TZ)
+        event.add("dtstart", start)
+        event.add("dtend", start + timedelta(hours=2))
+        event.add("summary", f"{fixture.home_team} vs {fixture.away_team}")
 
-            parts = [fixture.competition_code]
+        parts = [fixture.competition_code]
 
-            if fixture.tv is not None:
-                parts.append(f"{fixture.tv}")
+        if fixture.tv is not None:
+            parts.append(f"{fixture.tv}")
 
-            if fixture.matchday is not None:
-                parts.append(f"Matchday {fixture.matchday}")
+        if fixture.matchday is not None:
+            parts.append(f"Matchday {fixture.matchday}")
 
-            if fixture.venue:
-                parts.append(f"{fixture.venue}")
-                event.add("location", fixture.venue)
+        if fixture.venue:
+            parts.append(f"{fixture.venue}")
+            event.add("location", fixture.venue)
 
-            event.add("description", " | ".join(parts))
-
-        else:
-            event.add("summary", f"{title} (TBC)")
-            event.add("description", f"{fixture.competition_code} | Kickoff TBC")
+        event.add("description", " | ".join(parts))
 
         return event

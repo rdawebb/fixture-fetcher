@@ -34,6 +34,10 @@ class CalendarBuilder:
         """
         for fixture in fixtures:
             event = self.formatter.format_event(fixture)
+            if event is None:
+                # Fixture has no kick-off date; formatter has already logged it
+                continue
+
             self.calendar.add_component(event)
             logger.debug(
                 f"Added fixture {fixture.home_team} vs {fixture.away_team} to calendar"
