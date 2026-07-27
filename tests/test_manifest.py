@@ -6,9 +6,9 @@ from unittest.mock import patch
 import pytest
 
 from utils.manifest import (
-    generate_manifest,
-    _unslug,
     _get_competition_name,
+    _unslug,
+    generate_manifest,
 )
 
 
@@ -21,7 +21,6 @@ class TestUnslug:
             ("premier", False, "Premier"),
             ("premier-league", False, "Premier League"),
             ("fa-cup-championship", False, "Fa Cup Championship"),
-            ("premier-league", False, "Premier League"),
             ("premier-league", True, "PREMIER LEAGUE"),
             ("pl", True, "PL"),
             ("", False, ""),

@@ -2,7 +2,6 @@
 
 from datetime import datetime
 from pathlib import Path
-from typing import Set
 
 from icalendar import Calendar
 
@@ -14,7 +13,7 @@ logger = FFLogger.get_logger(__name__)
 class CalendarComparison:
     """Class to compare two ICS calendar files for upcoming events"""
 
-    def get_upcoming_events(self, ics_file: Path) -> Set[tuple]:
+    def get_upcoming_events(self, ics_file: Path) -> set[tuple]:
         """Get upcoming events from an ICS file as a tuple
 
         Args:
@@ -26,6 +25,7 @@ class CalendarComparison:
         try:
             with open(ics_file, "rb") as f:
                 cal = Calendar.from_ical(f.read())
+
         except Exception as e:
             logger.error(f"Error reading {ics_file}: {e}")
             raise ICSReadError(f"Error reading ICS file {ics_file}: {e}") from e
@@ -45,6 +45,7 @@ class CalendarComparison:
                                 str(event.get("DESCRIPTION", "")),
                             )
                         )
+
         except Exception as e:
             logger.error(f"Error processing events in {ics_file}: {e}")
             raise DataProcessingError(
@@ -69,12 +70,14 @@ class CalendarComparison:
         for ics_file in sorted(old_dir.glob("**/*.ics")):
             try:
                 old_signature.update(self.get_upcoming_events(ics_file))
+
             except (ICSReadError, DataProcessingError) as e:
                 logger.warning(f"Error processing {ics_file}: {e}")
 
         for ics_file in sorted(new_dir.glob("**/*.ics")):
             try:
                 new_signature.update(self.get_upcoming_events(ics_file))
+
             except (ICSReadError, DataProcessingError) as e:
                 logger.warning(f"Error processing {ics_file}: {e}")
 

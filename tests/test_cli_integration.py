@@ -328,12 +328,7 @@ class TestCLIClass:
         """Test welcome message can be rendered."""
         from app.shell import CLI
 
-        cli = CLI()
-        # Should not raise
-        try:
-            cli.welcome_message()
-        except Exception as e:
-            pytest.fail(f"welcome_message raised {e}")
+        CLI().welcome_message()  # Should not raise
 
     @patch("app.shell.confirm")
     @patch("app.shell.select")
@@ -372,22 +367,28 @@ class TestCLIClass:
     @patch("app.shell.confirm")
     @patch("app.shell.select")
     @patch("app.shell.select_multiple")
+    @patch("app.shell.Spinner")
     @patch("app.shell.build")
     def test_cli_interactive_prompt_with_build_error(
-        self, mock_build, mock_select_multiple, mock_select, mock_confirm
+        self, mock_build, mock_spinner, mock_select_multiple, mock_select, mock_confirm
     ):
-        """Test CLI handles errors during build gracefully."""
+        """Test build errors propagate but still stop the spinner."""
         from app.shell import CLI
 
         mock_confirm.return_value = True
         mock_select.return_value = "Manchester United FC"
         mock_select_multiple.return_value = ["Premier League"]
-        mock_build.side_effect = Exception("Build failed")
+        mock_build.side_effect = RuntimeError("Build failed")
+        mock_spinner_instance = Mock()
+        mock_spinner.return_value = mock_spinner_instance
 
         cli = CLI()
-        # Should handle exception gracefully
-        with pytest.raises(Exception):
+        # interactive_prompt does not catch build errors - they reach the caller
+        with pytest.raises(RuntimeError, match="Build failed"):
             cli.interactive_prompt()
+
+        # Spinner must be stopped even when the build raises
+        mock_spinner_instance.stop.assert_called_once()
 
     def test_cli_welcome_message_renders(self):
         """Test that welcome message renders without error."""

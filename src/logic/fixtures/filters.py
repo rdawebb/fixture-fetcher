@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from datetime import datetime
-from typing import Iterable, List
 
 from logic.fixtures.models import Fixture
 from utils import DataProcessingError, FFLogger, InvalidInputError
@@ -21,7 +21,7 @@ class Filter:
         home_only: bool = False,
         away_only: bool = False,
         televised_only: bool = False,
-    ) -> List[Fixture]:
+    ) -> list[Fixture]:
         """Apply multiple filters to fixtures at once.
 
         Args:
@@ -48,7 +48,7 @@ class Filter:
         return result
 
     @staticmethod
-    def only_home(fixtures: Iterable[Fixture]) -> List[Fixture]:
+    def only_home(fixtures: Iterable[Fixture]) -> list[Fixture]:
         """Filter fixtures to include only home games.
 
         Args:
@@ -63,7 +63,9 @@ class Filter:
             logger.info(
                 f"Filtered {len(result)} home fixtures from {len(fixtures_list)} total fixtures."
             )
+
             return result
+
         except AttributeError as e:
             logger.error(f"Error filtering home fixtures: {e}")
             raise DataProcessingError(
@@ -71,7 +73,7 @@ class Filter:
             ) from e
 
     @staticmethod
-    def only_away(fixtures: Iterable[Fixture]) -> List[Fixture]:
+    def only_away(fixtures: Iterable[Fixture]) -> list[Fixture]:
         """Filter fixtures to include only away games.
 
         Args:
@@ -86,7 +88,9 @@ class Filter:
             logger.info(
                 f"Filtered {len(result)} away fixtures from {len(fixtures_list)} total fixtures."
             )
+
             return result
+
         except AttributeError as e:
             logger.error(f"Error filtering away fixtures: {e}")
             raise DataProcessingError(
@@ -94,7 +98,7 @@ class Filter:
             ) from e
 
     @staticmethod
-    def only_scheduled(fixtures: Iterable[Fixture]) -> List[Fixture]:
+    def only_scheduled(fixtures: Iterable[Fixture]) -> list[Fixture]:
         """Filter fixtures to include only scheduled games.
 
         Args:
@@ -109,7 +113,9 @@ class Filter:
             logger.info(
                 f"Filtered {len(result)} scheduled fixtures from {len(fixtures_list)} total fixtures."
             )
+
             return result
+
         except AttributeError as e:
             logger.error(f"Error filtering scheduled fixtures: {e}")
             raise DataProcessingError(
@@ -117,7 +123,7 @@ class Filter:
             ) from e
 
     @staticmethod
-    def only_televised(fixtures: Iterable[Fixture]) -> List[Fixture]:
+    def only_televised(fixtures: Iterable[Fixture]) -> list[Fixture]:
         """Filter fixtures to include only televised games.
 
         Args:
@@ -132,7 +138,9 @@ class Filter:
             logger.info(
                 f"Filtered {len(result)} televised fixtures from {len(fixtures_list)} total fixtures."
             )
+
             return result
+
         except AttributeError as e:
             logger.error(f"Error filtering televised fixtures: {e}")
             raise DataProcessingError(
@@ -140,7 +148,7 @@ class Filter:
             ) from e
 
     @staticmethod
-    def by_competition(fixtures: Iterable[Fixture], comp_code: str) -> List[Fixture]:
+    def by_competition(fixtures: Iterable[Fixture], comp_code: str) -> list[Fixture]:
         """Filter fixtures by competition code.
 
         Args:
@@ -159,6 +167,7 @@ class Filter:
             result = [f for f in fixtures_list if f.competition_code == comp_code]
             logger.info(f"Filtered {len(result)} fixtures for competition {comp_code}.")
             return result
+
         except AttributeError as e:
             logger.error(f"Error filtering fixtures by competition: {e}")
             raise DataProcessingError(
@@ -168,7 +177,7 @@ class Filter:
     @staticmethod
     def by_date_range(
         fixtures: Iterable[Fixture], start_date: datetime, end_date: datetime
-    ) -> List[Fixture]:
+    ) -> list[Fixture]:
         """Filter fixtures within a specific date range.
 
         Args:
@@ -193,7 +202,9 @@ class Filter:
             logger.info(
                 f"Filtered {len(result)} fixtures from {len(fixtures_list)} total fixtures."
             )
+
             return result
+
         except AttributeError as e:
             logger.error(f"Error filtering fixtures by date range: {e}")
             raise DataProcessingError(

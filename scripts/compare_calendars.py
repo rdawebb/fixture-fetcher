@@ -14,7 +14,9 @@ if __name__ == "__main__":
     if output:
         with open(output, "a") as f:
             f.write(f"has_changes={'true' if has_changes else 'false'}\n")
+
     if has_changes:
         print("Calendars have changes")
+
     else:
         print("No changes in calendars")

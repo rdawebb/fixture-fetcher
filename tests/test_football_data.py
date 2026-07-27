@@ -243,9 +243,11 @@ class TestFDClientGetTeamId:
 
             mock_response = mock_api_response(200, {"teams": []})
 
-            with patch.object(client.session, "get", return_value=mock_response):
-                with pytest.raises(NotFoundError):
-                    client.get_team_id_by_name("Nonexistent Team")
+            with (
+                patch.object(client.session, "get", return_value=mock_response),
+                pytest.raises(NotFoundError),
+            ):
+                client.get_team_id_by_name("Nonexistent Team")
 
     def test_get_team_id_timeout(self, mock_cache_path):
         """Test TimeoutError when request times out."""
@@ -254,26 +256,30 @@ class TestFDClientGetTeamId:
         with patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"):
             client = FDClient()
 
-            with patch.object(
-                client.session,
-                "get",
-                side_effect=requests.exceptions.Timeout("Request timed out"),
+            with (
+                patch.object(
+                    client.session,
+                    "get",
+                    side_effect=requests.exceptions.Timeout("Request timed out"),
+                ),
+                pytest.raises(TimeoutError),
             ):
-                with pytest.raises(TimeoutError):
-                    client.get_team_id_by_name("Manchester United")
+                client.get_team_id_by_name("Manchester United")
 
     def test_get_team_id_connection_error(self, mock_cache_path):
         """Test ConnectionError on network error."""
         with patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"):
             client = FDClient()
 
-            with patch.object(
-                client.session,
-                "get",
-                side_effect=Exception("Network error"),
+            with (
+                patch.object(
+                    client.session,
+                    "get",
+                    side_effect=Exception("Network error"),
+                ),
+                pytest.raises(ConnectionError),
             ):
-                with pytest.raises(ConnectionError):
-                    client.get_team_id_by_name("Manchester United")
+                client.get_team_id_by_name("Manchester United")
 
 
 class TestFDClientFetchFixtures:
@@ -347,14 +353,16 @@ class TestFDClientFetchFixtures:
         with patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"):
             client = FDClient()
 
-            with patch.object(client, "get_team_id_by_name", return_value=66):
-                with patch.object(
+            with (
+                patch.object(client, "get_team_id_by_name", return_value=66),
+                patch.object(
                     client.session,
                     "get",
                     side_effect=requests.exceptions.Timeout("Request timed out"),
-                ):
-                    with pytest.raises(TimeoutError):
-                        client.fetch_fixtures("Manchester United")
+                ),
+                pytest.raises(TimeoutError),
+            ):
+                client.fetch_fixtures("Manchester United")
 
     def test_fetch_fixtures_connection_error(self, mock_cache_path):
         """Test ConnectionError on fixture fetching."""
@@ -363,14 +371,16 @@ class TestFDClientFetchFixtures:
         with patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"):
             client = FDClient()
 
-            with patch.object(client, "get_team_id_by_name", return_value=66):
-                with patch.object(
+            with (
+                patch.object(client, "get_team_id_by_name", return_value=66),
+                patch.object(
                     client.session,
                     "get",
                     side_effect=requests.exceptions.ConnectionError("Network error"),
-                ):
-                    with pytest.raises(ConnectionError):
-                        client.fetch_fixtures("Manchester United")
+                ),
+                pytest.raises(ConnectionError),
+            ):
+                client.fetch_fixtures("Manchester United")
 
     def test_fetch_fixtures_with_season_filter(
         self, mock_cache_path, mock_api_response, sample_match_data
@@ -467,19 +477,17 @@ class TestFDClientSaveCacheErrors:
         cache_dir = tmp_path / "cache"
         cache_dir.mkdir()
 
-        with patch("backend.api.football_data.CACHE_PATH", cache_dir):
-            with patch(
-                "backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"
-            ):
-                client = FDClient()
-                client.cache = {
-                    "Premier League": {
-                        "Manchester United": {"id": 66, "short_name": "MUN"}
-                    }
-                }
+        with (
+            patch("backend.api.football_data.CACHE_PATH", cache_dir),
+            patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"),
+        ):
+            client = FDClient()
+            client.cache = {
+                "Premier League": {"Manchester United": {"id": 66, "short_name": "MUN"}}
+            }
 
-                client._save_cache()
-                # Should return early and not save
+            client._save_cache()
+            # Should return early and not save
 
     @pytest.mark.parametrize(
         "invalid_cache",
@@ -506,12 +514,12 @@ class TestFDClientLoadCacheErrors:
         cache_file = tmp_path / "teams.yaml"
         cache_file.write_text("invalid: yaml: content: [")
 
-        with patch("backend.api.football_data.CACHE_PATH", cache_file):
-            with patch(
-                "backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"
-            ):
-                client = FDClient()
-                assert client.cache == {}
+        with (
+            patch("backend.api.football_data.CACHE_PATH", cache_file),
+            patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"),
+        ):
+            client = FDClient()
+            assert client.cache == {}
 
     def test_load_cache_with_non_dict_leagues(self, tmp_path):
         """Test loading cache where some leagues have non-dict values."""
@@ -522,13 +530,13 @@ class TestFDClientLoadCacheErrors:
         }
         cache_file.write_text(yaml.safe_dump(cache_data))
 
-        with patch("backend.api.football_data.CACHE_PATH", cache_file):
-            with patch(
-                "backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"
-            ):
-                client = FDClient()
-                # Should load what it can
-                assert "Premier League" in client.cache
+        with (
+            patch("backend.api.football_data.CACHE_PATH", cache_file),
+            patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"),
+        ):
+            client = FDClient()
+            # Should load what it can
+            assert "Premier League" in client.cache
 
 
 class TestFDClientRefreshCacheErrors:
@@ -540,9 +548,11 @@ class TestFDClientRefreshCacheErrors:
             client = FDClient()
             mock_response = mock_api_response(500)
 
-            with patch.object(client.session, "get", return_value=mock_response):
-                with pytest.raises(ConnectionError):
-                    client.refresh_team_cache(competitions=["PL"])
+            with (
+                patch.object(client.session, "get", return_value=mock_response),
+                pytest.raises(ConnectionError),
+            ):
+                client.refresh_team_cache(competitions=["PL"])
 
     def test_refresh_team_cache_no_teams_in_response(
         self, mock_cache_path, mock_api_response
@@ -560,22 +570,22 @@ class TestFDClientRefreshCacheErrors:
         """Test refresh_team_cache with custom cache path."""
         custom_cache_path = tmp_path / "custom_teams.yaml"
 
-        with patch("backend.api.football_data.CACHE_PATH", tmp_path / "teams.yaml"):
-            with patch(
-                "backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"
-            ):
-                client = FDClient()
-                mock_response = mock_api_response(
-                    200, {"teams": [{"name": "Team A", "id": 1, "shortName": "TA"}]}
+        with (
+            patch("backend.api.football_data.CACHE_PATH", tmp_path / "teams.yaml"),
+            patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"),
+        ):
+            client = FDClient()
+            mock_response = mock_api_response(
+                200, {"teams": [{"name": "Team A", "id": 1, "shortName": "TA"}]}
+            )
+
+            with patch.object(client.session, "get", return_value=mock_response):
+                client.refresh_team_cache(
+                    competitions=["PL"], cache_path=custom_cache_path
                 )
 
-                with patch.object(client.session, "get", return_value=mock_response):
-                    client.refresh_team_cache(
-                        competitions=["PL"], cache_path=custom_cache_path
-                    )
-
-                # Verify cache_path was updated
-                assert client.cache_path == custom_cache_path
+            # Verify cache_path was updated
+            assert client.cache_path == custom_cache_path
 
     def test_refresh_team_cache_success_with_teams(
         self, mock_cache_path, mock_api_response
@@ -612,9 +622,11 @@ class TestFDClientGetTeamIdErrors:
             client = FDClient()
             mock_response = mock_api_response(200, {})
 
-            with patch.object(client.session, "get", return_value=mock_response):
-                with pytest.raises(NotFoundError):
-                    client.get_team_id_by_name("Manchester United")
+            with (
+                patch.object(client.session, "get", return_value=mock_response),
+                pytest.raises(NotFoundError),
+            ):
+                client.get_team_id_by_name("Manchester United")
 
     def test_get_team_id_by_short_name_from_api(
         self, mock_cache_path, mock_api_response
@@ -785,21 +797,19 @@ class TestFDClientFetchFixturesAdditional:
         }
         cache_file.write_text(yaml.safe_dump(cache_data))
 
-        with patch("backend.api.football_data.CACHE_PATH", cache_file):
-            with patch(
-                "backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"
-            ):
-                client = FDClient()
+        with (
+            patch("backend.api.football_data.CACHE_PATH", cache_file),
+            patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"),
+        ):
+            client = FDClient()
 
-                with patch.object(client, "get_team_id_by_name", return_value=66):
-                    # Remove venue from API response so it comes from cache
-                    match_data = {**sample_match_data}
-                    del match_data["venue"]
-                    mock_response = mock_api_response(200, {"matches": [match_data]})
+            with patch.object(client, "get_team_id_by_name", return_value=66):
+                # Remove venue from API response so it comes from cache
+                match_data = {**sample_match_data}
+                del match_data["venue"]
+                mock_response = mock_api_response(200, {"matches": [match_data]})
 
-                    with patch.object(
-                        client.session, "get", return_value=mock_response
-                    ):
-                        result = client.fetch_fixtures("Manchester United")
+                with patch.object(client.session, "get", return_value=mock_response):
+                    result = client.fetch_fixtures("Manchester United")
 
-                    assert result[0].venue == "Old Trafford"
+                assert result[0].venue == "Old Trafford"

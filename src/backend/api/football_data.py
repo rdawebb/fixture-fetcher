@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import datetime as dt
 from pathlib import Path
-from typing import Any, Optional, cast
+from typing import Any, cast
 
 import requests
 import yaml
@@ -79,9 +79,11 @@ class FDClient:
                 )
                 logger.info(f"Loaded {num_teams} team IDs from cache")
                 return data
+
             except yaml.YAMLError as e:
                 logger.error(f"Failed to load cache: {e}")
                 return {}
+
         return {}
 
     def _save_cache(self) -> None:
@@ -109,6 +111,7 @@ class FDClient:
             self.cache_path.write_text(yaml.safe_dump(self.cache, sort_keys=True))
             logger.debug("Cache saved successfully")
             print("💾 Saved team cache successfully")
+
         except yaml.YAMLError as e:
             logger.error(f"Failed to save cache: {e}")
 
@@ -131,17 +134,20 @@ class FDClient:
         """
         if league not in self.cache:
             self.cache[league] = {}
+
         normalised_name = team_name.title()
         self.cache[league][normalised_name] = {
             "id": team_id,
             "short_name": short_name or normalised_name,
         }
+
         if venue:
             self.cache[league][normalised_name]["venue"] = venue
+
         self._save_cache()
 
     def refresh_team_cache(
-        self, competitions: list[str] | None = None, cache_path: Optional[Path] = None
+        self, competitions: list[str] | None = None, cache_path: Path | None = None
     ) -> None:
         """Refresh the team cache by fetching teams from specified competitions.
 
@@ -166,11 +172,13 @@ class FDClient:
                 league_name = COMP_CODES.get(code, code)
                 if league_name not in all_teams:
                     all_teams[league_name] = {}
+
                 for team in data.get("teams", []):
                     all_teams[league_name][team["name"]] = {
                         "id": team["id"],
                         "short_name": team.get("shortName", team["name"]),
                     }
+
             except Exception as e:
                 logger.error(f"Failed to refresh team cache: {e}")
                 raise ConnectionError(
@@ -182,6 +190,7 @@ class FDClient:
             self._save_cache()
             logger.info(f"Refreshed team cache with {len(all_teams)} teams")
             print(f"🔄 Refreshed team cache with {len(all_teams)} teams")
+
         else:
             logger.warning("No teams fetched to refresh cache")
             print("⚠️ No teams fetched to refresh cache")
@@ -212,6 +221,7 @@ class FDClient:
             elif status >= 500:
                 logger.error(f"Server error occurred: {status}")
                 raise ServerError("Server error", status_code=status, response=response)
+
             elif status >= 400:
                 logger.error(f"Unknown API error occurred: {status}")
                 raise UnknownAPIError(
@@ -220,14 +230,21 @@ class FDClient:
 
         try:
             data = response.json()
-            if not isinstance(data, dict):
-                raise ValueError("Expected JSON response to be a dict")
-            return data
+
         except ValueError as e:
             logger.error(f"ParsingError: Failed to parse API response: {e}")
             raise ParsingError(
                 f"Failed to parse API response: {e}", response=response
             ) from e
+
+        if not isinstance(data, dict):
+            error_msg = "Expected JSON response to be a dict"
+            logger.error(f"ParsingError: Failed to parse API response: {error_msg}")
+            raise ParsingError(
+                f"Failed to parse API response: {error_msg}", response=response
+            )
+
+        return data
 
     def get_team_id_by_name(self, team_name: str) -> int:
         """Get the team ID for a given team.
@@ -242,7 +259,7 @@ class FDClient:
             NotFoundError: If the team is not found.
         """
         # Check cache first (case-insensitive lookup)
-        for league, teams in self.cache.items():
+        for teams in self.cache.values():
             for cached_name, info in teams.items():
                 if (
                     cached_name.lower() == team_name.lower()
@@ -257,6 +274,7 @@ class FDClient:
             )
             response.raise_for_status()
             data = self._handle_response(response, "teams for competition PL")
+
         except requests.exceptions.Timeout:
             logger.error(
                 f"TimeoutError: Request timed out while fetching team ID for '{team_name}'"
@@ -264,10 +282,12 @@ class FDClient:
             raise TimeoutError(
                 f"Request timed out while fetching team ID for '{team_name}'"
             ) from None
+
         except requests.exceptions.ConnectionError as e:
             logger.error(
                 f"ConnectionError: Network error while fetching team ID for '{team_name}': {e}"
             )
+
         except Exception as e:
             raise ConnectionError(
                 f"Network error while fetching team ID for '{team_name}': {e}"
@@ -300,8 +320,8 @@ class FDClient:
     def fetch_fixtures(
         self,
         team_name: str,
-        competitions: Optional[list[str]] = None,
-        season: Optional[int] = None,
+        competitions: list[str] | None = None,
+        season: int | None = None,
     ) -> list[Fixture]:
         """Fetch fixtures for a given team.
 
@@ -316,8 +336,8 @@ class FDClient:
         logger.info(f"Fetching fixtures for team: {team_name}")
         team_id = self.get_team_id_by_name(team_name)
 
-        team_short_name: Optional[str] = None
-        for league, teams in self.cache.items():
+        team_short_name: str | None = None
+        for teams in self.cache.values():
             for cached_team_name, team_info in teams.items():
                 if (
                     cached_team_name.lower() == team_name.lower()
@@ -325,6 +345,7 @@ class FDClient:
                 ):
                     team_short_name = team_info["short_name"]
                     break
+
             if team_short_name:
                 break
 
@@ -342,6 +363,7 @@ class FDClient:
                 f"{API}teams/{team_id}/matches", params=params, timeout=10
             )
             data = self._handle_response(response, f"matches for team ID {team_id}")
+
         except requests.exceptions.Timeout:
             logger.error(
                 f"TimeoutError: Request timed out while fetching fixtures for team '{team_name}'"
@@ -349,6 +371,7 @@ class FDClient:
             raise TimeoutError(
                 f"Request timed out while fetching fixtures for team '{team_name}'"
             ) from None
+
         except requests.exceptions.ConnectionError as e:
             logger.error(
                 f"ConnectionError: Network error while fetching fixtures for team '{team_name}': {e}"
@@ -385,6 +408,7 @@ class FDClient:
                     if m.get("utcDate")
                     else None
                 )
+
             except (ValueError, KeyError) as e:
                 logger.warning(
                     f"Failed to parse kickoff time for match {match_id}: {e}"
@@ -400,11 +424,12 @@ class FDClient:
 
             venue = None
             home_team_full = m["homeTeam"]["name"]
-            for league, teams in self.cache.items():
+            for teams in self.cache.values():
                 for cached_team_name, team_info in teams.items():
                     if cached_team_name.lower() == home_team_full.lower():
                         venue = team_info.get("venue")
                         break
+
                 if venue:
                     break
 
@@ -432,7 +457,7 @@ class FDClient:
 class FootballDataRepository:
     """Repository implementation using Football Data API."""
 
-    def __init__(self, client: Optional[FDClient] = None) -> None:
+    def __init__(self, client: FDClient | None = None) -> None:
         """Initialise the repository with an FDClient instance.
 
         Args:
@@ -443,8 +468,8 @@ class FootballDataRepository:
     def fetch_fixtures(
         self,
         team_name: str,
-        competitions: Optional[list[str]] = None,
-        season: Optional[int] = None,
+        competitions: list[str] | None = None,
+        season: int | None = None,
     ) -> list[Fixture]:
         """Fetch fixtures for a given team.
 

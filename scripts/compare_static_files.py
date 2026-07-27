@@ -1,8 +1,8 @@
 """Script to compare static files for changes"""
 
 import os
-from pathlib import Path
 from filecmp import dircmp
+from pathlib import Path
 
 
 def compare_directories(old_dir: Path | None, new_dir: Path | None) -> bool:
@@ -35,9 +35,12 @@ def compare_directories(old_dir: Path | None, new_dir: Path | None) -> bool:
 
     # Recursively check subdirectories
     for common_dir in dcmp.common_dirs:
-        if old_dir is not None and new_dir is not None:
-            if compare_directories(old_dir / common_dir, new_dir / common_dir):
-                return True
+        if (
+            old_dir is not None
+            and new_dir is not None
+            and compare_directories(old_dir / common_dir, new_dir / common_dir)
+        ):
+            return True
 
     return False
 
@@ -73,6 +76,7 @@ if __name__ == "__main__":
                 if compare_directories(old_subdir, new_subdir):
                     static_changed = True
                     break
+
     else:
         static_changed = True
 
@@ -83,5 +87,6 @@ if __name__ == "__main__":
 
     if static_changed:
         print("Static files have changes")
+
     else:
         print("No changes in static files")

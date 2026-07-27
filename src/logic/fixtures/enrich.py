@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import List, Optional
 
 import yaml
 
@@ -11,7 +10,7 @@ from utils import FFLogger
 logger = FFLogger.get_logger(__name__)
 
 
-def apply_overrides(fixtures: List[Fixture], overrides_path: Path) -> int:
+def apply_overrides(fixtures: list[Fixture], overrides_path: Path) -> int:
     """Apply overrides from a YAML file to the list of fixtures.
 
     Args:
@@ -34,9 +33,11 @@ def apply_overrides(fixtures: List[Fixture], overrides_path: Path) -> int:
         tv = (val or {}).get("tv")
         if not tv:
             continue
+
         if key in by_id:
             if not by_id[key].tv:
                 applied += 1
+
             by_id[key].tv = tv
             logger.debug(f"Applied TV override for fixture ID {key}: {tv}")
             continue
@@ -49,6 +50,7 @@ def apply_overrides(fixtures: List[Fixture], overrides_path: Path) -> int:
             if comp == key:
                 if not f.tv:
                     applied += 1
+
                 f.tv = tv
                 logger.debug(f"Applied TV override for fixture {comp}: {tv}")
                 break
@@ -57,8 +59,8 @@ def apply_overrides(fixtures: List[Fixture], overrides_path: Path) -> int:
 
 
 def enrich_all(
-    fixtures: List[Fixture],
-    overrides_path: Optional[Path] = None,
+    fixtures: list[Fixture],
+    overrides_path: Path | None = None,
 ) -> dict:
     """Enrich fixtures with TV info from club ICS calendars and apply overrides.
 
@@ -77,7 +79,8 @@ def enrich_all(
         try:
             applied = apply_overrides(fixtures, overrides_path) if overrides_path else 0
             logger.info("Applied overrides successfully")
-        except Exception as e:
+
+        except (OSError, yaml.YAMLError, AttributeError) as e:
             logger.error(f"Failed to apply overrides: {e}")
 
     after_tv = sum(1 for f in fixtures if (f.tv or "").strip())

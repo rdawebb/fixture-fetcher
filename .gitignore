@@ -35,7 +35,7 @@ logs/
 public/
 
 # Dev docs
-docs/
+dev/
 
 # To be committed
 README.md

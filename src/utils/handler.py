@@ -18,9 +18,11 @@ def handle_error(error: Exception) -> int:
         error.handle()
         logger.critical("Configuration error - exiting application")
         return 1
+
     elif isinstance(error, (APIError, ApplicationError)):
         error.handle()
         return 1
+
     else:
         logger.exception("Unhandled exception")
         return 2

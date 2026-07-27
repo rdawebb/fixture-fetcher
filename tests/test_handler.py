@@ -54,10 +54,12 @@ class TestHandleError:
     def test_handle_configuration_error_logging(self):
         """Test that ConfigurationError is logged at critical level."""
         error = ConfigurationError("Test config error")
-        with patch("utils.handler.logger") as mock_logger:
-            with patch.object(error, "handle"):
-                handle_error(error)
-                mock_logger.critical.assert_called_once()
+        with (
+            patch("utils.handler.logger") as mock_logger,
+            patch.object(error, "handle"),
+        ):
+            handle_error(error)
+            mock_logger.critical.assert_called_once()
 
     def test_handle_unknown_exception_logging(self):
         """Test that unknown exceptions are logged."""

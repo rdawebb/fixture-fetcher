@@ -4,7 +4,6 @@ import logging
 import os
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from typing import Optional
 
 
 class FFLogger:
@@ -15,10 +14,10 @@ class FFLogger:
     @classmethod
     def get_logger(
         cls,
-        name: Optional[str] = None,
-        log_dir: Optional[str] = None,
-        log_file: Optional[str] = None,
-        log_level: Optional[str] = None,
+        name: str | None = None,
+        log_dir: str | None = None,
+        log_file: str | None = None,
+        log_level: str | None = None,
     ) -> logging.Logger:
         """Configure centralised logging with file and stream handlers.
 

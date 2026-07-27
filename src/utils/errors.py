@@ -1,7 +1,7 @@
 """List of custom exceptions for API and application errors."""
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 
 class APIError(Exception):
@@ -16,8 +16,8 @@ class APIError(Exception):
 
     def __init__(
         self,
-        message: Optional[str] = None,
-        status_code: Optional[int] = None,
+        message: str | None = None,
+        status_code: int | None = None,
         response: Any = None,
     ) -> None:
         """Initialise APIError.
@@ -112,7 +112,7 @@ class ApplicationError(Exception):
 
     LOG_LEVEL = "error"
 
-    def __init__(self, message: Optional[str] = None, context: Any = None) -> None:
+    def __init__(self, message: str | None = None, context: Any = None) -> None:
         """Initialise ApplicationError.
 
         Args:

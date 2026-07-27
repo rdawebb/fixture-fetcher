@@ -27,6 +27,7 @@ def load_pl_teams(cache_path: Path) -> list[str]:
     try:
         with open(cache_path) as f:
             teams_data = yaml.safe_load(f) or {}
+
     except (FileNotFoundError, yaml.YAMLError) as e:
         print(f"❌ Error loading cache file: {e}")
         sys.exit(1)
@@ -70,7 +71,8 @@ def build_calendars(teams: list[str]):
                 output_file=Path("public/calendars.json"),
             )
             print("✅ Calendar manifest generated successfully")
-        except Exception as e:
+
+        except Exception as e:  # noqa: BLE001 - manifest failure must not fail the build
             print(f"⚠️  Failed to generate manifest: {e}")
             # Don't fail the build if manifest generation fails
             sys.exit(0)
@@ -86,6 +88,7 @@ def build_calendars(teams: list[str]):
         if github_output:
             with open(github_output, "a") as f:
                 f.write("no_fixtures=true\n")
+
         sys.exit(0)
 
     else:

@@ -1,6 +1,6 @@
 """Repository protocol for accessing fixture data."""
 
-from typing import List, Optional, Protocol
+from typing import Protocol
 
 from logic.fixtures.models import Fixture
 
@@ -11,9 +11,9 @@ class FixtureRepository(Protocol):
     def fetch_fixtures(
         self,
         team_name: str,
-        competitions: Optional[List[str]] = None,
-        season: Optional[int] = None,
-    ) -> List[Fixture]:
+        competitions: list[str] | None = None,
+        season: int | None = None,
+    ) -> list[Fixture]:
         """Fetch fixtures for a given team, optionally filtered by competitions and season.
 
         Args:

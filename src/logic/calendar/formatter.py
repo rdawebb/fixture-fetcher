@@ -1,9 +1,9 @@
 """Module to format fixtures into iCalendar events."""
 
 from datetime import timedelta
+from zoneinfo import ZoneInfo
 
 from icalendar import Event
-from zoneinfo import ZoneInfo
 
 from logic.fixtures.models import Fixture
 
@@ -58,6 +58,7 @@ class EventFormatter:
                 event.add("location", fixture.venue)
 
             event.add("description", " | ".join(parts))
+
         else:
             event.add("summary", f"{title} (TBC)")
             event.add("description", f"{fixture.competition_code} | Kickoff TBC")

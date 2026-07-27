@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Any
+
+import orjson
 
 from utils import FFLogger
 
@@ -93,8 +94,8 @@ def generate_manifest(calendars_dir: Path, output_file: Path) -> None:
 
     # Create manifest file
     output_file.parent.mkdir(parents=True, exist_ok=True)
-    with open(output_file, "w") as f:
-        json.dump(manifest, f, indent=2)
+    with open(output_file, "wb") as f:
+        f.write(orjson.dumps(manifest))
 
     logger.info(f"Generated calendar manifest at {output_file}")
     logger.debug(f"Manifest contains {len(manifest['calendars'])} league(s)")
@@ -113,6 +114,7 @@ def _unslug(slug: str, uppercase: bool = False) -> str:
     words = slug.replace("-", " ").split()
     if uppercase:
         return " ".join(word.upper() for word in words)
+
     return " ".join(word.capitalize() for word in words)
 
 
@@ -126,4 +128,5 @@ def _get_competition_name(code: str) -> str:
         Full competition name
     """
     competition_names = {"PL": "Premier League"}
+
     return competition_names.get(code, code)

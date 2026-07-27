@@ -51,9 +51,7 @@ class TestCalendarComparison:
                 dtstart = event_data.get("dtstart")
                 if dtstart == "past":
                     dtstart = now - timedelta(hours=1)
-                elif dtstart == "future":
-                    dtstart = now + timedelta(hours=1)
-                elif dtstart is None:
+                elif dtstart == "future" or dtstart is None:
                     dtstart = now + timedelta(hours=1)
 
                 event.add("dtstart", dtstart)
@@ -97,7 +95,7 @@ class TestCalendarComparison:
 
         # Should only contain the future event
         assert len(events) == 1
-        event_tuple = list(events)[0]
+        event_tuple = next(iter(events))
         assert event_tuple[0] == "event1"
         assert "Future Event" in event_tuple[2] or "An upcoming event" in event_tuple[2]
 
@@ -199,7 +197,7 @@ class TestCalendarComparison:
         events = comparison.get_upcoming_events(ics_file)
 
         assert len(events) == 1
-        event = list(events)[0]
+        event = next(iter(events))
         assert len(event) == 3
         assert isinstance(event, tuple)
         assert event[0] == "test-id"  # UID

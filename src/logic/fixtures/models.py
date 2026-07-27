@@ -2,7 +2,6 @@
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional
 
 
 @dataclass
@@ -26,13 +25,13 @@ class Fixture:
     id: str
     competition: str
     competition_code: str
-    matchday: Optional[int]
-    utc_kickoff: Optional[datetime]
+    matchday: int | None
+    utc_kickoff: datetime | None
     home_team: str
     away_team: str
-    venue: Optional[str]
+    venue: str | None
     status: str
-    tv: Optional[str]
+    tv: str | None
     is_home: bool
 
     def __str__(self) -> str:

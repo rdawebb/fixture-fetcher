@@ -60,12 +60,15 @@ class CLI:
 
             spinner = Spinner(DOTS, text="Fetching fixtures...")
             spinner.start()
-            build(
-                teams=[selected_team],
-                competitions=["PL"],
-                output=Path("public/calendars"),
-            )
-            spinner.stop()
+            try:
+                build(
+                    teams=[selected_team],
+                    competitions=["PL"],
+                    output=Path("public/calendars"),
+                )
+
+            finally:
+                spinner.stop()
 
             success_message = f"⚽️ [bold green]Successfully fetched fixtures for {selected_team}![/bold green] ⚽️"
             self.console.print(

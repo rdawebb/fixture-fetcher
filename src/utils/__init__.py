@@ -32,6 +32,7 @@ __all__ = [
     "ConfigurationError",
     "ConnectionError",
     "DataProcessingError",
+    "FFLogger",
     "ICSReadError",
     "ICSWriteError",
     "InvalidInputError",
@@ -45,5 +46,4 @@ __all__ = [
     "TimeoutError",
     "UnknownAPIError",
     "ValidationError",
-    "FFLogger",
 ]

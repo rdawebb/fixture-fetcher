@@ -29,8 +29,9 @@ def remove_files(root: Path, extensions: list[str]) -> None:
             if file.is_file():
                 try:
                     file.unlink()
-                except Exception:
-                    pass
+
+                except OSError as e:
+                    print(f"Failed to remove {file}: {e}")
 
 
 if __name__ == "__main__":

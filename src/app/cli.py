@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import time
 from pathlib import Path
-from typing import Optional
 
 from backend import FootballDataRepository
 from backend.config import get_config
@@ -45,14 +44,14 @@ def _slug(s: str) -> str:
 
 def build(
     teams: list[str],
-    competitions: Optional[list[str]] = None,
-    season: Optional[int] = None,
+    competitions: list[str] | None = None,
+    season: int | None = None,
     home_only: bool = False,
     away_only: bool = False,
     televised_only: bool = False,
     output: Path = Path("public"),
     tv_from: str = "auto",  # not used currently
-    overrides: Optional[Path] = TV_OVERRIDES_PATH,
+    overrides: Path | None = TV_OVERRIDES_PATH,
     cache_dir: Path = CACHE_DIR,
     refresh_cache: bool = False,
     refresh_competitions: bool = False,  # not used currently
@@ -93,6 +92,7 @@ def build(
 
     if not teams:
         raise InvalidInputError("Team(s) must be specified")
+
     teams = [t.strip() for t in teams if t.strip()]
 
     num_teams = len(teams)
@@ -103,6 +103,7 @@ def build(
     for t in teams:
         try:
             league, short_name = get_team_info(t)
+
         except (TeamNotFoundError, TeamsCacheError) as e:
             error_msg = str(e)
             logger.error(f"Failed to build ICS for team '{t}': {error_msg}")
@@ -191,14 +192,14 @@ def build(
 
         except CalendarError as e:
             error_msg = str(e)
-            logger.error(
-                f"Failed to build ICS for team '{short_name}' in {comp_name}: {error_msg}"
-            )
-            failed.append((short_name, comp_code))
+            logger.error(f"Failed to build ICS for team '{short_name}': {error_msg}")
+            failed.append((short_name, error_msg))
 
         except Exception as e:
             error_msg = str(e)
-            logger.error(f"Failed to build ICS for team '{short_name}': {error_msg}")
+            logger.exception(
+                f"Failed to build ICS for team '{short_name}': {error_msg}"
+            )
             failed.append((short_name, error_msg))
 
     return {
@@ -243,6 +244,7 @@ def get_team_info(team_name: str, cache_path: Path = CACHE_PATH) -> tuple[str, s
     try:
         with open(cache_path) as f:
             teams_data = yaml.safe_load(f) or {}
+
     except (FileNotFoundError, yaml.YAMLError) as e:
         raise TeamsCacheError(
             f"Error loading teams cache from {cache_path}",
@@ -255,11 +257,13 @@ def get_team_info(team_name: str, cache_path: Path = CACHE_PATH) -> tuple[str, s
                 f"Invalid cache structure for league '{league}': expected dict, got {type(teams).__name__}"
             )
             continue
+
         if team_name in teams:
             team_info = teams[team_name]
             short_name = team_name  # Default to team_name
             if isinstance(team_info, dict) and "short_name" in team_info:
                 short_name = team_info["short_name"]
+
             else:
                 logger.warning(
                     f"No short name found for team '{team_name}' in league '{league}'"

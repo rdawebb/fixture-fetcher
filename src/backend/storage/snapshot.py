@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-import json
 from dataclasses import asdict
 from pathlib import Path
-from typing import Dict, List, Tuple, cast
+from typing import cast
+
+import orjson
 
 from logic.fixtures.models import Fixture
 from utils import DataProcessingError, FFLogger
@@ -29,7 +30,7 @@ def _fixture_to_dict(fixture: Fixture) -> dict:
     return dict
 
 
-def _dict_to_key_fields(d: dict) -> Tuple[str, str, str, str]:
+def _dict_to_key_fields(d: dict) -> tuple[str, str, str, str]:
     """Extract key fields from a fixture dictionary for comparison.
 
     Args:
@@ -46,7 +47,7 @@ def _dict_to_key_fields(d: dict) -> Tuple[str, str, str, str]:
     )
 
 
-def save_snapshot(fixtures: List[Fixture], path: Path) -> None:
+def save_snapshot(fixtures: list[Fixture], path: Path) -> None:
     """Save a snapshot of fixtures to a JSON file.
 
     Args:
@@ -55,15 +56,17 @@ def save_snapshot(fixtures: List[Fixture], path: Path) -> None:
     """
     path.parent.mkdir(parents=True, exist_ok=True)
     snapshot = {f.id: _fixture_to_dict(f) for f in fixtures}
+
     try:
-        path.write_text(json.dumps(snapshot, indent=2, sort_keys=True))
+        path.write_bytes(orjson.dumps(snapshot))
         logger.info(f"Snapshot saved successfully with {len(fixtures)} fixtures.")
+
     except Exception as e:
-        logger.error(f"Failed to save snapshot: {e}", exc_info=True)
+        logger.exception("Failed to save snapshot")
         raise DataProcessingError("Failed to save snapshot") from e
 
 
-def load_snapshot(path: Path) -> Dict[str, dict]:
+def load_snapshot(path: Path) -> dict[str, dict]:
     """Load a snapshot of fixtures from a JSON file.
 
     Args:
@@ -75,14 +78,16 @@ def load_snapshot(path: Path) -> Dict[str, dict]:
     if not path.exists():
         logger.warning("Snapshot file does not exist.")
         return {}
+
     try:
-        return cast(Dict[str, dict], json.loads(path.read_text()))
-    except json.JSONDecodeError as e:
+        return cast(dict[str, dict], orjson.loads(path.read_bytes()))
+
+    except orjson.JSONDecodeError as e:
         logger.error(f"Error decoding JSON from snapshot file: {e}")
         return {}
 
 
-def diff_changes(current: List[Fixture], snapshot: Dict[str, dict]) -> Dict[str, int]:
+def diff_changes(current: list[Fixture], snapshot: dict[str, dict]) -> dict[str, int]:
     """Compare current fixtures to a snapshot and identify changes.
 
     Args:
@@ -97,6 +102,7 @@ def diff_changes(current: List[Fixture], snapshot: Dict[str, dict]) -> Dict[str,
         prev = snapshot.get(f.id)
         if not prev:
             continue
+
         curr_tuple = (
             f.utc_kickoff.isoformat() if f.utc_kickoff else "",
             f.venue or "",
@@ -116,4 +122,5 @@ def diff_changes(current: List[Fixture], snapshot: Dict[str, dict]) -> Dict[str,
             counts["status"] += 1
 
     logger.info(f"Diff changes: {counts}")
+
     return counts

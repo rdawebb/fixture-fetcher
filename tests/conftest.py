@@ -2,7 +2,6 @@
 
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import List
 from unittest.mock import Mock, patch
 
 import pytest
@@ -35,7 +34,7 @@ def sample_fixture() -> Fixture:
 
 
 @pytest.fixture
-def sample_fixtures() -> List[Fixture]:
+def sample_fixtures() -> list[Fixture]:
     """Create a list of sample fixtures for testing.
 
     Returns:
@@ -143,8 +142,10 @@ def mock_api_response():
         response.status_code = status_code
         if json_data is not None:
             response.json.return_value = json_data
+
         if side_effect is not None:
             response.json.side_effect = side_effect
+
         return response
 
     return _create_response
@@ -239,9 +240,11 @@ def cache_with_teams(tmp_path):
     }
     cache_file.write_text(yaml.safe_dump(cache_data))
 
-    with patch("backend.api.football_data.CACHE_PATH", cache_file):
-        with patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"):
-            yield FDClient()
+    with (
+        patch("backend.api.football_data.CACHE_PATH", cache_file),
+        patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"),
+    ):
+        yield FDClient()
 
 
 # Snapshot test fixtures
