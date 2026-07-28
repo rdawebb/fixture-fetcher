@@ -52,7 +52,7 @@ class TestFDClientCache:
             client = FDClient()
             assert client.cache == cache_data
 
-    def test_load_cache_file_not_exists(self, mock_cache_path):
+    def test_load_cache_file_not_exists(self):
         """Test loading cache when file doesn't exist."""
         with patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"):
             client = FDClient()
@@ -176,9 +176,7 @@ class TestFDClientRefreshCache:
             assert client.cache["Premier League"]["Team A"]["short_name"] == "TA"
             assert mock_cache_path.exists()
 
-    def test_refresh_team_cache_merges_other_leagues(
-        self, mock_cache_path, mock_api_response
-    ):
+    def test_refresh_team_cache_merges_other_leagues(self, mock_api_response):
         """Test refreshing one competition leaves other cached leagues intact."""
         with patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"):
             client = FDClient()
@@ -198,9 +196,7 @@ class TestFDClientRefreshCache:
             assert client.cache["Championship"]["Team C"]["id"] == 3
             assert client.cache["Premier League"]["Team A"]["id"] == 1
 
-    def test_refresh_team_cache_stores_team_metadata(
-        self, mock_cache_path, mock_api_response
-    ):
+    def test_refresh_team_cache_stores_team_metadata(self, mock_api_response):
         """Test venue, colours and crest are kept from the teams response."""
         with patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"):
             client = FDClient()
@@ -229,9 +225,7 @@ class TestFDClientRefreshCache:
             assert cached["club_colors"] == "Red / White"
             assert cached["crest"] == "https://example.com/66.png"
 
-    def test_refresh_team_cache_all_competitions(
-        self, mock_cache_path, mock_api_response
-    ):
+    def test_refresh_team_cache_all_competitions(self, mock_api_response):
         """Test refreshing cache for all competitions."""
         with patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"):
             client = FDClient()
@@ -261,40 +255,97 @@ class TestFDClientGetTeamId:
         result = cache_with_teams.get_team_id_by_name("manchester united")
         assert result == 66
 
-    def test_get_team_id_from_api(
-        self, mock_cache_path, mock_api_response, sample_team_data
+    def test_get_team_id_from_match_data(
+        self, mock_api_response, competition_matches_response
     ):
-        """Test getting team ID from API when not in cache."""
+        """Test resolving a cache miss from the competition match payload."""
         with patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"):
             client = FDClient()
 
-            mock_response = mock_api_response(200, {"teams": [sample_team_data]})
+            mock_response = mock_api_response(200, competition_matches_response())
 
-            with patch.object(client.session, "get", return_value=mock_response):
+            with patch.object(
+                client.session, "get", return_value=mock_response
+            ) as mock_get:
                 result = client.get_team_id_by_name("Manchester United")
 
             assert result == 66
+            # Resolved from the matches endpoint, not a bespoke /teams request
+            assert "competitions/PL/matches" in mock_get.call_args.args[0]
 
-    def test_get_team_id_by_short_name(
-        self, mock_cache_path, mock_api_response, sample_team_data
+    def test_get_team_id_from_match_data_caches_team(
+        self, mock_api_response, competition_matches_response
     ):
-        """Test getting team ID by short name."""
+        """Test a team resolved from match data is written to the cache."""
         with patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"):
             client = FDClient()
 
-            mock_response = mock_api_response(200, {"teams": [sample_team_data]})
+            mock_response = mock_api_response(200, competition_matches_response())
 
             with patch.object(client.session, "get", return_value=mock_response):
-                result = client.get_team_id_by_name("Man Utd")
+                client.get_team_id_by_name("Manchester United")
+
+            cached = client.cache["Premier League"]["Manchester United"]
+            assert cached["id"] == 66
+            assert cached["short_name"] == "Man United"
+
+    def test_get_team_id_by_short_name_from_match_data(
+        self, mock_api_response, competition_matches_response
+    ):
+        """Test resolving a team by its short name from match data."""
+        with patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"):
+            client = FDClient()
+
+            mock_response = mock_api_response(200, competition_matches_response())
+
+            with patch.object(client.session, "get", return_value=mock_response):
+                result = client.get_team_id_by_name("Man United")
 
             assert result == 66
 
-    def test_get_team_id_not_found(self, mock_cache_path, mock_api_response):
+    def test_get_team_id_searches_all_competitions(
+        self, mock_api_response, competition_matches_response
+    ):
+        """Test a miss in one competition falls through to the next."""
+        elc_match = {
+            "id": "9",
+            "status": "SCHEDULED",
+            "utcDate": "2025-11-15T15:00:00Z",
+            "homeTeam": {"name": "Leeds United", "shortName": "Leeds", "id": 341},
+            "awayTeam": {"name": "Norwich City", "shortName": "Norwich", "id": 68},
+            "competition": {"code": "ELC", "name": "Championship"},
+            "matchday": 10,
+        }
+
+        with patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"):
+            client = FDClient()
+
+            responses = [
+                mock_api_response(200, competition_matches_response(matches=[])),
+                mock_api_response(
+                    200,
+                    competition_matches_response(
+                        matches=[elc_match], code="ELC", name="Championship"
+                    ),
+                ),
+            ]
+
+            with patch.object(client.session, "get", side_effect=responses):
+                result = client.get_team_id_by_name("Leeds United", ["PL", "ELC"])
+
+            assert result == 341
+            assert client.cache["ELC"]["Leeds United"]["id"] == 341
+
+    def test_get_team_id_not_found(
+        self, mock_api_response, competition_matches_response
+    ):
         """Test NotFoundError when team not found."""
         with patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"):
             client = FDClient()
 
-            mock_response = mock_api_response(200, {"teams": []})
+            mock_response = mock_api_response(
+                200, competition_matches_response(matches=[])
+            )
 
             with (
                 patch.object(client.session, "get", return_value=mock_response),
@@ -302,7 +353,7 @@ class TestFDClientGetTeamId:
             ):
                 client.get_team_id_by_name("Nonexistent Team")
 
-    def test_get_team_id_timeout(self, mock_cache_path):
+    def test_get_team_id_timeout(self):
         """Test TimeoutError when request times out."""
         import requests
 
@@ -319,7 +370,7 @@ class TestFDClientGetTeamId:
             ):
                 client.get_team_id_by_name("Manchester United")
 
-    def test_get_team_id_connection_error(self, mock_cache_path):
+    def test_get_team_id_connection_error(self):
         """Test ConnectionError on network error."""
         with patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"):
             client = FDClient()
@@ -334,7 +385,7 @@ class TestFDClientGetTeamId:
             ):
                 client.get_team_id_by_name("Manchester United")
 
-    def test_get_team_id_requests_connection_error(self, mock_cache_path):
+    def test_get_team_id_requests_connection_error(self):
         """Test a requests ConnectionError surfaces, not an UnboundLocalError."""
         import requests
 
@@ -351,15 +402,13 @@ class TestFDClientGetTeamId:
             ):
                 client.get_team_id_by_name("Manchester United")
 
-            assert "Manchester United" in str(exc_info.value)
+            assert "competition PL" in str(exc_info.value)
 
 
 class TestFDClientFetchFixtures:
     """Tests for FDClient fetch_fixtures method."""
 
-    def test_fetch_fixtures_success(
-        self, mock_cache_path, mock_api_response, sample_match_data
-    ):
+    def test_fetch_fixtures_success(self, mock_api_response, sample_match_data):
         """Test successful fixture fetching."""
         with patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"):
             client = FDClient()
@@ -377,7 +426,7 @@ class TestFDClientFetchFixtures:
                 assert result[0].away_team == "Liverpool"
 
     def test_fetch_fixtures_with_competitions_filter(
-        self, mock_cache_path, mock_api_response, sample_match_data
+        self, mock_api_response, sample_match_data
     ):
         """Test fixture fetching with competition filter."""
         with patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"):
@@ -418,7 +467,7 @@ class TestFDClientFetchFixtures:
                 assert len(result) == 1
                 assert result[0].competition_code == "PL"
 
-    def test_fetch_fixtures_timeout(self, mock_cache_path):
+    def test_fetch_fixtures_timeout(self):
         """Test TimeoutError on fixture fetching."""
         import requests
 
@@ -436,7 +485,7 @@ class TestFDClientFetchFixtures:
             ):
                 client.fetch_fixtures("Manchester United")
 
-    def test_fetch_fixtures_connection_error(self, mock_cache_path):
+    def test_fetch_fixtures_connection_error(self):
         """Test ConnectionError on fixture fetching."""
         import requests
 
@@ -455,7 +504,7 @@ class TestFDClientFetchFixtures:
                 client.fetch_fixtures("Manchester United")
 
     def test_fetch_fixtures_with_season_filter(
-        self, mock_cache_path, mock_api_response, sample_match_data
+        self, mock_api_response, sample_match_data
     ):
         """Test fixture fetching with season filter."""
         with patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"):
@@ -475,7 +524,7 @@ class TestFDClientFetchFixtures:
                 assert call_kwargs["params"]["season"] == 2025
 
     def test_fetch_fixtures_missing_utc_date(
-        self, mock_cache_path, mock_api_response, sample_match_data
+        self, mock_api_response, sample_match_data
     ):
         """Test fixture fetching when utcDate is missing."""
         with patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"):
@@ -494,7 +543,7 @@ class TestFDClientFetchFixtures:
                 assert result[0].utc_kickoff is None
 
     def test_fetch_fixtures_invalid_utc_date(
-        self, mock_cache_path, mock_api_response, sample_match_data
+        self, mock_api_response, sample_match_data
     ):
         """Test fixture fetching when utcDate has invalid format."""
         with patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"):
@@ -511,7 +560,7 @@ class TestFDClientFetchFixtures:
                 assert len(result) == 1
                 assert result[0].utc_kickoff is None
 
-    def test_fetch_fixtures_empty_matches(self, mock_cache_path, mock_api_response):
+    def test_fetch_fixtures_empty_matches(self, mock_api_response):
         """Test fixture fetching when no matches are returned."""
         with patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"):
             client = FDClient()
@@ -525,10 +574,248 @@ class TestFDClientFetchFixtures:
                 assert len(result) == 0
 
 
+class TestFDClientCompetitionMatches:
+    """Tests for the single-request-per-competition fetch strategy."""
+
+    def test_fetch_uses_competition_endpoint(
+        self, cache_with_teams, mock_api_response, competition_matches_response
+    ):
+        """Test fixtures come from the competition endpoint, not the team endpoint."""
+        client = cache_with_teams
+        mock_response = mock_api_response(200, competition_matches_response())
+
+        with patch.object(
+            client.session, "get", return_value=mock_response
+        ) as mock_get:
+            client.fetch_fixtures("Manchester United", competitions=["PL"])
+
+        url = mock_get.call_args.args[0]
+        assert url.endswith("competitions/PL/matches")
+
+    def test_one_request_serves_every_team(
+        self, cache_with_teams, mock_api_response, competition_matches_response
+    ):
+        """Test a second team reuses the memoised payload instead of refetching.
+
+        This is the whole point of the competition-wide fetch: request count must
+        scale with competitions, not with teams.
+        """
+        client = cache_with_teams
+        mock_response = mock_api_response(200, competition_matches_response())
+
+        with patch.object(
+            client.session, "get", return_value=mock_response
+        ) as mock_get:
+            first = client.fetch_fixtures("Manchester United", competitions=["PL"])
+            second = client.fetch_fixtures("Liverpool", competitions=["PL"])
+
+        assert mock_get.call_count == 1
+        assert len(first) == 1
+        assert len(second) == 1
+        assert first[0].is_home is True
+        assert second[0].is_home is False
+
+    def test_memo_is_keyed_by_season(
+        self, cache_with_teams, mock_api_response, competition_matches_response
+    ):
+        """Test different seasons are fetched separately."""
+        client = cache_with_teams
+        mock_response = mock_api_response(200, competition_matches_response())
+
+        with patch.object(
+            client.session, "get", return_value=mock_response
+        ) as mock_get:
+            client.fetch_fixtures("Manchester United", ["PL"], season=2025)
+            client.fetch_fixtures("Manchester United", ["PL"], season=2026)
+            client.fetch_fixtures("Manchester United", ["PL"], season=2025)
+
+        assert mock_get.call_count == 2
+
+    def test_failures_are_not_memoised(
+        self, cache_with_teams, mock_api_response, competition_matches_response
+    ):
+        """Test a rate-limited competition is retried rather than cached as failed."""
+        client = cache_with_teams
+
+        responses = [
+            mock_api_response(429),
+            mock_api_response(200, competition_matches_response()),
+        ]
+
+        with patch.object(client.session, "get", side_effect=responses):
+            with pytest.raises(RateLimitError):
+                client.fetch_fixtures("Manchester United", competitions=["PL"])
+
+            result = client.fetch_fixtures("Manchester United", competitions=["PL"])
+
+        assert len(result) == 1
+
+    def test_fetch_fixtures_across_multiple_competitions(
+        self, cache_with_teams, mock_api_response, competition_matches_response
+    ):
+        """Test one request per competition, with results combined."""
+        client = cache_with_teams
+        cl_match = {
+            "id": "3",
+            "status": "SCHEDULED",
+            "utcDate": "2025-12-02T20:00:00Z",
+            "homeTeam": {
+                "name": "Manchester United",
+                "shortName": "Man United",
+                "id": 66,
+            },
+            "awayTeam": {"name": "Real Madrid", "shortName": "Real Madrid", "id": 86},
+            "competition": {"code": "CL", "name": "UEFA Champions League"},
+            "matchday": 4,
+        }
+
+        responses = [
+            mock_api_response(200, competition_matches_response()),
+            mock_api_response(
+                200,
+                competition_matches_response(
+                    matches=[cl_match], code="CL", name="UEFA Champions League"
+                ),
+            ),
+        ]
+
+        with patch.object(client.session, "get", side_effect=responses) as mock_get:
+            result = client.fetch_fixtures("Manchester United", ["PL", "CL"])
+
+        assert mock_get.call_count == 2
+        assert {f.competition_code for f in result} == {"PL", "CL"}
+
+    def test_is_home_matched_by_id_not_name(
+        self, cache_with_teams, mock_api_response, competition_matches_response
+    ):
+        """Test home/away is decided by team ID, so caller spelling doesn't matter."""
+        client = cache_with_teams
+        mock_response = mock_api_response(200, competition_matches_response())
+
+        with patch.object(client.session, "get", return_value=mock_response):
+            # Cached as "Manchester United"/"MUN"; the API short name is "Man United"
+            result = client.fetch_fixtures("MUN", competitions=["PL"])
+
+        assert len(result) == 1
+        assert result[0].is_home is True
+
+    def test_competition_metadata_falls_back_to_payload_root(
+        self, cache_with_teams, mock_api_response
+    ):
+        """Test matches without a competition block use the root competition."""
+        client = cache_with_teams
+        match = {
+            "id": "1",
+            "status": "SCHEDULED",
+            "utcDate": "2025-11-15T15:00:00Z",
+            "homeTeam": {
+                "name": "Manchester United",
+                "shortName": "Man United",
+                "id": 66,
+            },
+            "awayTeam": {"name": "Liverpool", "shortName": "Liverpool", "id": 64},
+        }
+        mock_response = mock_api_response(
+            200,
+            {
+                "competition": {"code": "PL", "name": "Premier League"},
+                "matches": [match],
+            },
+        )
+
+        with patch.object(client.session, "get", return_value=mock_response):
+            result = client.fetch_fixtures("Manchester United", competitions=["PL"])
+
+        assert result[0].competition == "Premier League"
+        assert result[0].competition_code == "PL"
+
+    def test_missing_short_name_falls_back_to_full_name(
+        self, cache_with_teams, mock_api_response, competition_matches_response
+    ):
+        """Test a null shortName in the payload doesn't produce an empty team name."""
+        client = cache_with_teams
+        match = {
+            "id": "1",
+            "status": "SCHEDULED",
+            "utcDate": "2025-11-15T15:00:00Z",
+            "homeTeam": {"name": "Manchester United", "shortName": None, "id": 66},
+            "awayTeam": {"name": "Liverpool FC", "shortName": None, "id": 64},
+            "competition": {"code": "PL", "name": "Premier League"},
+        }
+        mock_response = mock_api_response(
+            200, competition_matches_response(matches=[match])
+        )
+
+        with patch.object(client.session, "get", return_value=mock_response):
+            result = client.fetch_fixtures("Manchester United", competitions=["PL"])
+
+        assert result[0].home_team == "Manchester United"
+        assert result[0].away_team == "Liverpool FC"
+
+    def test_other_teams_matches_are_filtered_out(
+        self, cache_with_teams, mock_api_response, competition_matches_response
+    ):
+        """Test only the requested team's matches survive the filter."""
+        client = cache_with_teams
+        other_match = {
+            "id": "4",
+            "status": "SCHEDULED",
+            "utcDate": "2025-11-16T14:00:00Z",
+            "homeTeam": {"name": "Arsenal", "shortName": "Arsenal", "id": 57},
+            "awayTeam": {"name": "Chelsea", "shortName": "Chelsea", "id": 61},
+            "competition": {"code": "PL", "name": "Premier League"},
+        }
+        mock_response = mock_api_response(
+            200, competition_matches_response(matches=None)
+        )
+        mock_response.json.return_value["matches"].append(other_match)
+
+        with patch.object(client.session, "get", return_value=mock_response):
+            result = client.fetch_fixtures("Manchester United", competitions=["PL"])
+
+        assert len(result) == 1
+        assert result[0].id == "1"
+
+
+class TestFDClientTeamIndex:
+    """Tests for the team cache index."""
+
+    def test_index_rebuilt_after_cache_change(self, cache_with_teams):
+        """Test the index picks up teams added after it was first built."""
+        client = cache_with_teams
+        assert "chelsea" not in client._team_index()
+
+        client._add_to_cache("Premier League", "Chelsea", 61, "CHE")
+
+        assert client._team_index()["chelsea"]["id"] == 61
+
+    def test_index_skips_malformed_leagues(self, tmp_path):
+        """Test a non-dict league entry doesn't break the index."""
+        cache_file = tmp_path / "teams.yaml"
+        cache_file.write_text(
+            yaml.safe_dump(
+                {
+                    "Premier League": {
+                        "Manchester United": {"id": 66, "short_name": "MUN"}
+                    },
+                    "Championship": "invalid",
+                }
+            )
+        )
+
+        with (
+            patch("backend.api.football_data.CACHE_PATH", cache_file),
+            patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"),
+        ):
+            client = FDClient()
+
+        assert client._team_index()["manchester united"]["id"] == 66
+
+
 class TestFDClientSaveCacheErrors:
     """Tests for _save_cache error handling."""
 
-    def test_save_cache_with_yaml_error(self, mock_cache_path):
+    def test_save_cache_with_yaml_error(self):
         """Test that YAML errors in _save_cache are handled."""
         with patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"):
             client = FDClient()
@@ -568,7 +855,7 @@ class TestFDClientSaveCacheErrors:
             {"Premier League": "invalid"},  # League is not a dict
         ],
     )
-    def test_save_cache_invalid_structure(self, mock_cache_path, invalid_cache):
+    def test_save_cache_invalid_structure(self, invalid_cache):
         """Test _save_cache with various invalid structures."""
         with patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"):
             client = FDClient()
@@ -614,7 +901,7 @@ class TestFDClientLoadCacheErrors:
 class TestFDClientRefreshCacheErrors:
     """Tests for refresh_team_cache error handling."""
 
-    def test_refresh_team_cache_api_error(self, mock_cache_path, mock_api_response):
+    def test_refresh_team_cache_api_error(self, mock_api_response):
         """Test refresh_team_cache when API returns error."""
         with patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"):
             client = FDClient()
@@ -626,9 +913,7 @@ class TestFDClientRefreshCacheErrors:
             ):
                 client.refresh_team_cache(competitions=["PL"])
 
-    def test_refresh_team_cache_no_teams_in_response(
-        self, mock_cache_path, mock_api_response
-    ):
+    def test_refresh_team_cache_no_teams_in_response(self, mock_api_response):
         """Test refresh_team_cache when response contains no teams."""
         with patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"):
             client = FDClient()
@@ -686,10 +971,8 @@ class TestFDClientRefreshCacheErrors:
 class TestFDClientGetTeamIdErrors:
     """Tests for get_team_id_by_name error scenarios."""
 
-    def test_get_team_id_no_teams_in_api_response(
-        self, mock_cache_path, mock_api_response
-    ):
-        """Test get_team_id when API returns empty teams list."""
+    def test_get_team_id_no_matches_in_api_response(self, mock_api_response):
+        """Test get_team_id when the API response carries no matches."""
         with patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"):
             client = FDClient()
             mock_response = mock_api_response(200, {})
@@ -700,23 +983,32 @@ class TestFDClientGetTeamIdErrors:
             ):
                 client.get_team_id_by_name("Manchester United")
 
-    def test_get_team_id_by_short_name_from_api(
-        self, mock_cache_path, mock_api_response
+    def test_get_team_id_by_tla_from_match_data(
+        self, mock_api_response, competition_matches_response
     ):
-        """Test getting team ID by short name from API."""
+        """Test getting team ID by three-letter abbreviation."""
+        match = {
+            "id": "1",
+            "status": "SCHEDULED",
+            "utcDate": "2025-11-15T15:00:00Z",
+            "homeTeam": {
+                "name": "Manchester United",
+                "shortName": "Man United",
+                "tla": "MUN",
+                "id": 66,
+            },
+            "awayTeam": {"name": "Liverpool", "shortName": "Liverpool", "id": 64},
+            "competition": {"code": "PL", "name": "Premier League"},
+        }
+
         with patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"):
             client = FDClient()
             mock_response = mock_api_response(
-                200,
-                {
-                    "teams": [
-                        {"name": "Manchester United", "shortName": "Man Utd", "id": 66},
-                    ]
-                },
+                200, competition_matches_response(matches=[match])
             )
 
             with patch.object(client.session, "get", return_value=mock_response):
-                result = client.get_team_id_by_name("Man Utd")
+                result = client.get_team_id_by_name("MUN")
 
             assert result == 66
 
@@ -724,7 +1016,7 @@ class TestFDClientGetTeamIdErrors:
 class TestFDClientAddToCache:
     """Tests for _add_to_cache functionality."""
 
-    def test_add_to_cache_with_venue(self, mock_cache_path):
+    def test_add_to_cache_with_venue(self):
         """Test adding team to cache with venue information."""
         with patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"):
             client = FDClient()
@@ -746,7 +1038,7 @@ class TestFDClientAddToCache:
 class TestFootballDataRepository:
     """Tests for FootballDataRepository class."""
 
-    def test_repository_with_custom_client(self, mock_cache_path):
+    def test_repository_with_custom_client(self):
         """Test FootballDataRepository with a custom client."""
         from backend.api.football_data import FootballDataRepository
 
@@ -755,7 +1047,7 @@ class TestFootballDataRepository:
             repo = FootballDataRepository(client=custom_client)
             assert repo.client == custom_client
 
-    def test_repository_creates_default_client(self, mock_cache_path):
+    def test_repository_creates_default_client(self):
         """Test FootballDataRepository creates a default client."""
         from backend.api.football_data import FootballDataRepository
 
@@ -764,7 +1056,7 @@ class TestFootballDataRepository:
             assert repo.client is not None
             assert isinstance(repo.client, FDClient)
 
-    def test_repository_fetch_fixtures(self, mock_cache_path):
+    def test_repository_fetch_fixtures(self):
         """Test FootballDataRepository.fetch_fixtures delegates to client."""
         from backend.api.football_data import FootballDataRepository
 
@@ -784,9 +1076,7 @@ class TestFootballDataRepository:
 class TestFDClientFetchFixturesAdditional:
     """Additional tests for fetch_fixtures."""
 
-    def test_fetch_fixtures_away_match(
-        self, mock_cache_path, mock_api_response, sample_match_data
-    ):
+    def test_fetch_fixtures_away_match(self, mock_api_response, sample_match_data):
         """Test fetch_fixtures correctly identifies away matches."""
         with patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"):
             client = FDClient()
@@ -815,7 +1105,7 @@ class TestFDClientFetchFixturesAdditional:
                 assert result[0].is_home is False
 
     def test_fetch_fixtures_filters_by_competition(
-        self, mock_cache_path, mock_api_response, sample_match_data
+        self, mock_api_response, sample_match_data
     ):
         """Test fetch_fixtures correctly filters by competition."""
         with patch("backend.api.football_data.FOOTBALL_DATA_API_TOKEN", "test_token"):

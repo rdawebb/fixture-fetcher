@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import time
 from pathlib import Path
 
 from backend import FootballDataRepository
@@ -22,7 +21,6 @@ from utils import (
 logger = FFLogger.get_logger(__name__)
 
 config = get_config()
-API_RATE_LIMIT_DELAY = float(config.get("API_RATE_LIMIT_DELAY", "6.0"))
 CACHE_DIR = Path(config.get("CACHE_DIR", "data/cache/"))
 CACHE_PATH = Path(config.get("CACHE_PATH", "data/cache/teams.yaml"))
 TV_OVERRIDES_PATH = Path(
@@ -95,8 +93,6 @@ def build(
 
     teams = [t.strip() for t in teams if t.strip()]
 
-    num_teams = len(teams)
-
     successful = []
     failed = []
 
@@ -114,11 +110,6 @@ def build(
             league_slug = _slug(league)
 
             fixtures = repo.fetch_fixtures(t, comps, season)
-            if num_teams >= 10:
-                time.sleep(API_RATE_LIMIT_DELAY)  # Rate limit sleep
-            logger.info(
-                f"Fetched fixtures for team '{short_name}' - waiting {API_RATE_LIMIT_DELAY} seconds..."
-            )
             fixtures = Filter.apply_filters(fixtures, upcoming_only=True)
 
             fixtures_by_comp = {}

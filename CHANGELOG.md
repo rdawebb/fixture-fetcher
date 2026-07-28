@@ -11,6 +11,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Postponed, suspended and cancelled matches now stay in calendars marked as cancelled, instead of silently disappearing
 - Fixtures whose kick-off time is not yet confirmed are marked as tentative and labelled "Kick-off time TBC"
 
+### Changed
+
+- Building calendars for several teams is now much faster: a competition's fixtures are fetched once and shared across every team in it, so builds no longer pause between teams
+- `API_RATE_LIMIT_DELAY` no longer has any effect on builds, as the waiting it controlled is no longer needed
+
 ### Fixed
 
 - Calendars now cover the current season's teams; published feeds had been pinned to the team list captured on the first automated build

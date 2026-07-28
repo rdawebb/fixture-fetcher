@@ -12,6 +12,7 @@ import yaml
 from backend.config import get_config
 from logic.fixtures.models import Fixture
 from utils import (
+    APIError,
     AuthenticationError,
     ConnectionError,
     FFLogger,
@@ -31,6 +32,8 @@ API = config["FOOTBALL_DATA_API"]
 FOOTBALL_DATA_API_TOKEN = config["FOOTBALL_DATA_API_TOKEN"]
 CACHE_PATH = Path(config["CACHE_PATH"])
 COMP_CODES = config.get("FD_COMPETITIONS", {"PL": "Premier League"})
+
+REQUEST_TIMEOUT = 30
 
 HTTP_ERROR_MAP: dict[int, tuple] = {
     404: (NotFoundError, "warning"),
@@ -62,7 +65,39 @@ class FDClient:
         self.session.headers.update(self.token)
         self.cache_path = CACHE_PATH
         self.cache = self._load_cache()
+        self._matches_cache: dict[tuple[str, int | None], tuple[dict, list[dict]]] = {}
+        self._index: dict[str, dict] | None = None
         logger.debug("FDClient initialised successfully")
+
+    def _team_index(self) -> dict[str, dict]:
+        """Build a lowercase name lookup over the team cache.
+
+        Both full names and short names are keys, with full names taking precedence
+        where a short name collides with another team's full name.
+
+        Returns:
+            A dictionary mapping lowercased team names to their cached info.
+        """
+        if self._index is None:
+            index: dict[str, dict] = {}
+            for teams in self.cache.values():
+                if not isinstance(teams, dict):
+                    continue
+
+                for name, info in teams.items():
+                    short_name = info.get("short_name") or name
+                    index[str(short_name).lower()] = info
+
+            for teams in self.cache.values():
+                if not isinstance(teams, dict):
+                    continue
+
+                for name, info in teams.items():
+                    index[str(name).lower()] = info
+
+            self._index = index
+
+        return self._index
 
     def _load_cache(self) -> dict[str, Any]:
         """Load team cache from cache_path.
@@ -144,6 +179,7 @@ class FDClient:
         if venue:
             self.cache[league][normalised_name]["venue"] = venue
 
+        self._index = None
         self._save_cache()
 
     def refresh_team_cache(
@@ -193,6 +229,7 @@ class FDClient:
             for league_name, teams in all_teams.items():
                 self.cache[league_name] = teams
 
+            self._index = None
             self._save_cache()
             num_teams = sum(len(teams) for teams in all_teams.values())
             logger.info(
@@ -255,79 +292,192 @@ class FDClient:
 
         return data
 
-    def get_team_id_by_name(self, team_name: str) -> int:
+    def fetch_competition_matches(
+        self, comp_code: str, season: int | None = None
+    ) -> tuple[dict, list[dict]]:
+        """Fetch every match in a competition, memoised per (competition, season).
+
+        One request serves every team in the competition, so callers should share a
+        single client for the whole build rather than creating one per team.
+
+        Args:
+            comp_code: Competition code (e.g. 'PL').
+            season: Season year to filter matches.
+
+        Returns:
+            A tuple of (competition metadata, list of raw match dictionaries).
+
+        Raises:
+            TimeoutError: If the request times out.
+            ConnectionError: If a network error occurs.
+            APIError: Subclasses raised by _handle_response for HTTP errors.
+        """
+        key = (comp_code, season)
+        if key in self._matches_cache:
+            logger.debug(f"Using memoised {comp_code} matches")
+            return self._matches_cache[key]
+
+        params: dict[str, Any] = {"season": season} if season else {}
+        context = f"matches for competition {comp_code}"
+
+        try:
+            logger.debug(f"Fetching {context} with params: {params}")
+            print(f"📡 Fetching all {comp_code} matches...")
+            response = self.session.get(
+                f"{API}competitions/{comp_code}/matches",
+                params=params,
+                timeout=REQUEST_TIMEOUT,
+            )
+            data = self._handle_response(response, context)
+
+        except requests.exceptions.Timeout:
+            logger.error(f"TimeoutError: Request timed out fetching {context}")
+            raise TimeoutError(f"Request timed out fetching {context}") from None
+
+        except requests.exceptions.ConnectionError as e:
+            logger.error(f"ConnectionError: Network error fetching {context}: {e}")
+            raise ConnectionError(f"Network error fetching {context}") from e
+
+        except APIError:
+            raise  # Typed HTTP errors from _handle_response keep their identity
+
+        except Exception as e:
+            raise ConnectionError(f"Network error fetching {context}: {e}") from e
+
+        comp_meta = data.get("competition") or {"code": comp_code, "name": comp_code}
+        matches = data.get("matches", [])
+
+        # Only successes are memoised: a transient 429 must not poison the build
+        self._matches_cache[key] = (comp_meta, matches)
+        logger.info(f"Fetched {len(matches)} {comp_code} matches in one request")
+        return comp_meta, matches
+
+    @staticmethod
+    def _find_team_in_matches(matches: list[dict], team_name: str) -> dict | None:
+        """Find a team in a competition's matches by name, short name or TLA.
+
+        Args:
+            matches: Raw match dictionaries from the API.
+            team_name: Name of the team to search for.
+
+        Returns:
+            The matching team dictionary, or None if not present.
+        """
+        wanted = team_name.lower()
+        if not wanted:
+            return None
+
+        for m in matches:
+            for side in ("homeTeam", "awayTeam"):
+                team = m.get(side) or {}
+                names = {
+                    str(team.get(key) or "").lower()
+                    for key in ("name", "shortName", "tla")
+                }
+                if wanted in names - {""} and team.get("id") is not None:
+                    return team
+
+        return None
+
+    def get_team_id_by_name(
+        self,
+        team_name: str,
+        competitions: list[str] | None = None,
+        season: int | None = None,
+    ) -> int:
         """Get the team ID for a given team.
+
+        Checks the team cache first. On a miss the team is resolved from the
+        competition match payloads, which carry every team's id, name, short name
+        and TLA, so the lookup costs no extra request beyond the one the fixture
+        fetch needs anyway.
 
         Args:
             team_name: Name of the team to search for.
+            competitions: Competition codes to search. Defaults to all configured.
+            season: Season year to filter matches.
 
         Returns:
             The team ID as an integer.
 
         Raises:
-            NotFoundError: If the team is not found.
+            NotFoundError: If the team is not found in any searched competition.
         """
-        # Check cache first (case-insensitive lookup)
-        for teams in self.cache.values():
-            for cached_name, info in teams.items():
-                if (
-                    cached_name.lower() == team_name.lower()
-                    or info["short_name"].lower() == team_name.lower()
-                ):
-                    return int(info["id"])
+        info = self._team_index().get(team_name.lower())
+        if info is not None:
+            return int(info["id"])
 
-        print(f"🔍 {team_name} not found in cache - fetching from football-data.org...")
-        try:
-            response = self.session.get(
-                f"{API}competitions/PL/teams", headers=self.token, timeout=30
+        comps = competitions if competitions else list(COMP_CODES.keys())
+        print(f"🔍 {team_name} not found in cache - resolving from match data...")
+
+        for code in comps:
+            _, matches = self.fetch_competition_matches(code, season)
+            team = self._find_team_in_matches(matches, team_name)
+            if team is None:
+                continue
+
+            team_id = cast(int, team["id"])
+            self._add_to_cache(
+                COMP_CODES.get(code, code),
+                team["name"],
+                team_id,
+                team.get("shortName") or team["name"],
             )
-            response.raise_for_status()
-            data = self._handle_response(response, "teams for competition PL")
-
-        except requests.exceptions.Timeout:
-            logger.error(
-                f"TimeoutError: Request timed out while fetching team ID for '{team_name}'"
+            logger.info(
+                f"Resolved and cached team ID for '{team_name}' from {code}: {team_id}"
             )
-            raise TimeoutError(
-                f"Request timed out while fetching team ID for '{team_name}'"
-            ) from None
+            print(f"🔄 Resolved and cached team ID for '{team_name}': {team_id}")
+            return team_id
 
-        except requests.exceptions.ConnectionError as e:
-            logger.error(
-                f"ConnectionError: Network error while fetching team ID for '{team_name}': {e}"
-            )
-            raise ConnectionError(
-                f"Network error while fetching team ID for '{team_name}'"
-            ) from e
-
-        except Exception as e:
-            raise ConnectionError(
-                f"Network error while fetching team ID for '{team_name}': {e}"
-            ) from e
-
-        data_teams = data.get("teams", [])
-        if not data_teams:
-            logger.error("No teams data found in API response")
-            raise NotFoundError("No teams data found in API response")
-
-        for team in data_teams:
-            if (
-                team["name"].lower() == team_name.lower()
-                or team["shortName"].lower() == team_name.lower()
-            ):
-                team_id = cast(int, team["id"])
-                self._add_to_cache(
-                    COMP_CODES.get("PL", "Premier League"),
-                    team["name"],
-                    team_id,
-                    team.get("shortName", team["name"]),
-                )
-                logger.info(f"Fetched and cached team ID for '{team_name}': {team_id}")
-                print(f"🔄 Fetched and cached team ID for '{team_name}': {team_id}")
-                return team_id
-
-        logger.error(f"Team '{team_name}' not found in API response")
+        logger.error(f"Team '{team_name}' not found in competitions {comps}")
         raise NotFoundError(f"Team '{team_name}' not found")
+
+    def _to_fixture(
+        self, m: dict, team_id: int, comp_meta: dict, comp_code: str
+    ) -> Fixture:
+        """Build a Fixture from a raw match dictionary.
+
+        Args:
+            m: The raw match dictionary from the API.
+            team_id: ID of the team the fixture is being built for.
+            comp_meta: Competition metadata to fall back on.
+            comp_code: The competition code the match was fetched under.
+
+        Returns:
+            The corresponding Fixture.
+        """
+        comp = m.get("competition") or comp_meta
+        match_id = str(m["id"])
+
+        try:
+            utc_kickoff = (
+                dt.datetime.fromisoformat(m["utcDate"].replace("Z", "+00:00"))
+                if m.get("utcDate")
+                else None
+            )
+
+        except (ValueError, KeyError) as e:
+            logger.warning(f"Failed to parse kickoff time for match {match_id}: {e}")
+            utc_kickoff = None
+
+        home = m["homeTeam"]
+        away = m["awayTeam"]
+        venue_info = self._team_index().get(str(home.get("name") or "").lower())
+
+        return Fixture(
+            id=match_id,
+            competition=comp.get("name", comp_code),
+            competition_code=comp.get("code", comp_code),
+            matchday=m.get("matchday"),
+            utc_kickoff=utc_kickoff,
+            home_team=home.get("shortName") or home.get("name", ""),
+            away_team=away.get("shortName") or away.get("name", ""),
+            venue=venue_info.get("venue") if venue_info else None,
+            status=m["status"],
+            tv=None,
+            # Match on ID, not name: the caller's spelling need not match the API's
+            is_home=home.get("id") == team_id,
+        )
 
     def fetch_fixtures(
         self,
@@ -337,132 +487,49 @@ class FDClient:
     ) -> list[Fixture]:
         """Fetch fixtures for a given team.
 
+        Fixtures are filtered out of the per-competition match payloads rather than
+        requested per team, so a full multi-team build costs one request per
+        competition rather than one per team.
+
         Args:
             team_name: Name of the team to fetch fixtures for.
-            competitions: List of competition codes to filter fixtures.
+            competitions: List of competition codes to fetch fixtures from.
             season: Season year to filter fixtures.
 
         Returns:
             List of fixtures for the specified team.
         """
         logger.info(f"Fetching fixtures for team: {team_name}")
-        team_id = self.get_team_id_by_name(team_name)
+        comps = competitions if competitions else list(COMP_CODES.keys())
+        team_id = self.get_team_id_by_name(team_name, comps, season)
 
-        team_short_name: str | None = None
-        for teams in self.cache.values():
-            for cached_team_name, team_info in teams.items():
-                if (
-                    cached_team_name.lower() == team_name.lower()
-                    or team_info["short_name"].lower() == team_name.lower()
-                ):
-                    team_short_name = team_info["short_name"]
-                    break
+        info = self._team_index().get(team_name.lower())
+        display_name = (info.get("short_name") if info else None) or team_name
 
-            if team_short_name:
-                break
-
-        params = {}
-
-        if season:
-            params["season"] = season
-
-        try:
-            logger.debug(
-                f"Fetching matches for team ID {team_id} with params: {params}"
-            )
-            print(f"📡 Fetching matches for {team_name} (ID {team_id})...")
-            response = self.session.get(
-                f"{API}teams/{team_id}/matches", params=params, timeout=10
-            )
-            data = self._handle_response(response, f"matches for team ID {team_id}")
-
-        except requests.exceptions.Timeout:
-            logger.error(
-                f"TimeoutError: Request timed out while fetching fixtures for team '{team_name}'"
-            )
-            raise TimeoutError(
-                f"Request timed out while fetching fixtures for team '{team_name}'"
-            ) from None
-
-        except requests.exceptions.ConnectionError as e:
-            logger.error(
-                f"ConnectionError: Network error while fetching fixtures for team '{team_name}': {e}"
-            )
-            raise ConnectionError(
-                f"Network error while fetching fixtures for team '{team_name}'"
-            ) from e
-
-        matches = data.get("matches", [])
         fixtures: list[Fixture] = []
-        allowed = set(competitions) if competitions else set(COMP_CODES.keys())
 
-        logger.debug(
-            f"Processing {len(matches)} matches, filtering for selected competitions"
-        )
+        for code in comps:
+            comp_meta, matches = self.fetch_competition_matches(code, season)
+            logger.debug(f"Filtering {len(matches)} {code} matches for '{team_name}'")
 
-        for m in matches:
-            comp_name = m["competition"]["name"]
-            comp_code = m["competition"]["code"]
+            for m in matches:
+                comp = m.get("competition") or comp_meta
 
-            if comp_code not in allowed:
-                logger.debug(
-                    f"Skipping match {m['id']} - competition {comp_code} not in allowed set"
-                )
-                continue
+                # Belt-and-braces: the endpoint is competition-scoped already
+                if comp.get("code") and comp["code"] != code:
+                    logger.debug(
+                        f"Skipping match {m['id']} - competition {comp['code']} "
+                        f"not in allowed set"
+                    )
+                    continue
 
-            match_id = str(m["id"])
-            status = m["status"]
-            matchday = m.get("matchday")
+                if team_id not in (m["homeTeam"].get("id"), m["awayTeam"].get("id")):
+                    continue
 
-            try:
-                utc_kickoff = (
-                    dt.datetime.fromisoformat(m["utcDate"].replace("Z", "+00:00"))
-                    if m.get("utcDate")
-                    else None
-                )
-
-            except (ValueError, KeyError) as e:
-                logger.warning(
-                    f"Failed to parse kickoff time for match {match_id}: {e}"
-                )
-                utc_kickoff = None
-
-            home_team = m["homeTeam"]["shortName"]
-            away_team = m["awayTeam"]["shortName"]
-            is_home = home_team.lower() == team_name.lower() or (
-                team_short_name is not None
-                and home_team.lower() == team_short_name.lower()
-            )
-
-            venue = None
-            home_team_full = m["homeTeam"]["name"]
-            for teams in self.cache.values():
-                for cached_team_name, team_info in teams.items():
-                    if cached_team_name.lower() == home_team_full.lower():
-                        venue = team_info.get("venue")
-                        break
-
-                if venue:
-                    break
-
-            fixtures.append(
-                Fixture(
-                    id=match_id,
-                    competition=comp_name,
-                    competition_code=comp_code,
-                    matchday=matchday,
-                    utc_kickoff=utc_kickoff,
-                    home_team=home_team,
-                    away_team=away_team,
-                    venue=venue,
-                    status=status,
-                    tv=None,
-                    is_home=is_home,
-                )
-            )
+                fixtures.append(self._to_fixture(m, team_id, comp_meta, code))
 
         logger.info(f"Fetched {len(fixtures)} fixtures for team '{team_name}'")
-        print(f"📅 Fetched {len(fixtures)} fixtures for {team_name}")
+        print(f"📅 Fetched {len(fixtures)} fixtures for {display_name}")
         return fixtures
 
 

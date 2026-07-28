@@ -179,6 +179,36 @@ def sample_match_data() -> dict:
 
 
 @pytest.fixture
+def competition_matches_response(sample_match_data):
+    """Factory for a /competitions/{code}/matches payload.
+
+    Args:
+        sample_match_data: The sample match data.
+
+    Returns:
+        A factory taking matches and a competition code.
+    """
+
+    def _create(matches=None, code="PL", name="Premier League"):
+        """Build a competition matches payload.
+
+        Args:
+            matches: The matches to include. Defaults to the sample match.
+            code: The competition code.
+            name: The competition name.
+
+        Returns:
+            The payload dictionary.
+        """
+        return {
+            "competition": {"id": 2021, "code": code, "name": name},
+            "matches": [sample_match_data] if matches is None else matches,
+        }
+
+    return _create
+
+
+@pytest.fixture
 def sample_team_data() -> dict:
     """Sample team data for API responses.
 
