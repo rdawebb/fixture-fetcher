@@ -1,5 +1,8 @@
 """Pytest configuration and shared fixtures."""
 
+import os
+import shutil
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import Mock, patch
@@ -7,8 +10,21 @@ from unittest.mock import Mock, patch
 import pytest
 import yaml
 
+_LOG_DIR = tempfile.mkdtemp(prefix="fixture-fetcher-tests-")
+os.environ["LOG_DIR"] = _LOG_DIR
+
 from backend.api.football_data import FDClient
 from logic.fixtures.models import Fixture
+
+
+def pytest_sessionfinish(session, exitstatus):
+    """Discard the throwaway log directory this run wrote to.
+
+    Args:
+        session: The pytest session that has finished.
+        exitstatus: The status the session is exiting with.
+    """
+    shutil.rmtree(_LOG_DIR, ignore_errors=True)
 
 
 @pytest.fixture
@@ -222,7 +238,7 @@ def sample_team_data() -> dict:
     }
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def mock_cache_path(tmp_path):
     """Fixture that patches CACHE_PATH and returns the path.
 

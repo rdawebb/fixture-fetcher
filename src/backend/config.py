@@ -22,13 +22,10 @@ API_RATE_LIMIT_DELAY = float(os.getenv("API_RATE_LIMIT_DELAY", "6.0"))
 # Cache configuration
 
 CACHE_DIR = Path(os.getenv("CACHE_DIR", "data/cache/"))
-CACHE_DIR.mkdir(parents=True, exist_ok=True)
 CACHE_PATH = Path(os.getenv("CACHE_PATH", "data/cache/teams.yaml"))
-CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
 TV_OVERRIDES_PATH = Path(
     os.getenv("TV_OVERRIDES_PATH", "data/overrides/tv_overrides.yaml")
 )
-TV_OVERRIDES_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 # API constants
 
