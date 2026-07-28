@@ -1,108 +1,152 @@
-537902:
-  date: 2025-11-24 20:00
-  game: Manchester United FC vs Everton FC
-  tv: "Sky Sports"
-537907:
-  date: 2025-11-30 12:00
-  game: Crystal Palace FC vs Manchester United FC
+560543@fixture-fetcher:
+  date: 2026-08-22 11:30
+  game: Hull City vs Man United
   tv: "TNT Sports"
-537922:
-  date: 2025-12-04 20:00
-  game: Manchester United FC vs West Ham United FC
+560553@fixture-fetcher:
+  date: 2026-08-30 15:30
+  game: Man United vs Ipswich Town
   tv: "Sky Sports"
-537934:
-  date: 2025-12-08 20:00
-  game: Wolverhampton Wanderers FC vs Manchester United FC
+560567@fixture-fetcher:
+  date: 2026-09-06 13:00
+  game: Everton vs Man United
   tv: "Sky Sports"
-537942:
-  date: 2025-12-15 20:00
-  game: Manchester United FC vs AFC Bournemouth
+560580@fixture-fetcher:
+  date: 2026-09-13 15:30
+  game: Man United vs Man City
   tv: "Sky Sports"
-537946:
-  date: 2025-12-21 16:30
-  game: Aston Villa FC vs Manchester United FC
+560583@fixture-fetcher:
+  date: 2026-09-20 15:30
+  game: Fulham vs Man United
   tv: "Sky Sports"
-537962:
-  date: 2025-12-26 20:00
-  game: Manchester United FC vs Newcastle United FC
-  tv: "Sky Sports"
-537972:
-  date: 2025-12-30 20:15
-  game: Manchester United FC vs Wolverhampton Wanderers FC
-  tv: "Sky Sports"
-537980:
-  date: 2026-01-04 12:30
-  game: Leeds United FC vs Manchester United FC
-  tv: "TNT Sports"
-537989:
-  date: 2026-01-07 20:15
-  game: Burnley FC vs Manchester United FC
-  tv: "Sky Sports"
-538001:
-  date: 2026-01-17 00:00
-  game: Manchester United FC vs Manchester City FC
-  tv: "Sky Sports"
-538007:
-  date: 2026-01-24 00:00
-  game: Arsenal FC vs Manchester United FC
-  tv: "Sky Sports"
-538021:
-  date: 2026-01-31 00:00
-  game: Manchester United FC vs Fulham FC
-  tv: "Sky Sports"
-538032:
-  date: 2026-02-07 00:00
-  game: Manchester United FC vs Tottenham Hotspur FC
-  tv: "TNT Sports"
-538044:
-  date: 2026-02-11 00:00
-  game: West Ham United FC vs Manchester United FC
-  tv: "TNT Sports"
-538050:
-  date: 2026-02-21 00:00
-  game: Everton FC vs Manchester United FC
-  tv: "Sky Sports"
-538062:
-  date: 2026-02-28 00:00
-  game: Manchester United FC vs Crystal Palace FC
-  tv: "Sky Sports"
-538072:
-  date: 2026-03-04 00:00
-  game: Newcastle United FC vs Manchester United FC
-  tv: "TNT Sports"
-538082:
-  date: 2026-03-14 00:00
-  game: Manchester United FC vs Aston Villa FC
-  tv: "Sky Sports"
-538085:
-  date: 2026-03-21 00:00
-  game: AFC Bournemouth vs Manchester United FC
-  tv: "Sky Sports"
-538102:
-  date: 2026-04-11 00:00
-  game: Manchester United FC vs Leeds United FC
-  tv: "Sky Sports"
-538108:
-  date: 2026-04-18 00:00
-  game: Chelsea FC vs Manchester United FC
-  tv: "TNT Sports"
-538122:
-  date: 2026-04-25 00:00
-  game: Manchester United FC vs Brentford FC
-  tv: "Sky Sports"
-538132:
-  date: 2026-05-02 00:00
-  game: Manchester United FC vs Liverpool FC
-  tv: "Sky Sports"
-538135:
-  date: 2026-05-09 00:00
-  game: Sunderland AFC vs Manchester United FC
+560600@fixture-fetcher:
+  date: 2026-10-10 14:00
+  game: Man United vs Tottenham
   tv: ""
-538152:
-  date: 2026-05-17 00:00
-  game: Manchester United FC vs Nottingham Forest FC
-  tv: "Sky Sports"
-538156:
-  date: 2026-05-24 00:00
-  game: Brighton & Hove Albion FC vs Manchester United FC
-  tv: "Sky Sports"
+560605@fixture-fetcher:
+  date: 2026-10-17 14:00
+  game: Leeds United vs Man United
+  tv: ""
+560615@fixture-fetcher:
+  date: 2026-10-24 14:00
+  game: Man United vs Bournemouth
+  tv: ""
+560626@fixture-fetcher:
+  date: 2026-10-31 15:00
+  game: Chelsea vs Man United
+  tv: ""
+560639@fixture-fetcher:
+  date: 2026-11-07 15:00
+  game: Man United vs Aston Villa
+  tv: ""
+560645@fixture-fetcher:
+  date: 2026-11-21 15:00
+  game: Liverpool vs Man United
+  tv: ""
+560655@fixture-fetcher:
+  date: 2026-11-28 15:00
+  game: Man United vs Brentford
+  tv: ""
+560670@fixture-fetcher:
+  date: 2026-12-02 20:00
+  game: Newcastle vs Man United
+  tv: ""
+560673@fixture-fetcher:
+  date: 2026-12-05 15:00
+  game: Man United vs Coventry City
+  tv: ""
+560683@fixture-fetcher:
+  date: 2026-12-12 15:00
+  game: Crystal Palace vs Man United
+  tv: ""
+560699@fixture-fetcher:
+  date: 2026-12-19 15:00
+  game: Arsenal vs Man United
+  tv: ""
+560703@fixture-fetcher:
+  date: 2026-12-26 15:00
+  game: Man United vs Nottingham
+  tv: ""
+560717@fixture-fetcher:
+  date: 2026-12-30 20:00
+  game: Man United vs Sunderland
+  tv: ""
+560730@fixture-fetcher:
+  date: 2027-01-02 12:00
+  game: Brighton Hove vs Man United
+  tv: ""
+560734@fixture-fetcher:
+  date: 2027-01-06 12:00
+  game: Man United vs Newcastle
+  tv: ""
+560746@fixture-fetcher:
+  date: 2027-01-16 12:00
+  game: Aston Villa vs Man United
+  tv: ""
+560759@fixture-fetcher:
+  date: 2027-01-23 12:00
+  game: Man United vs Liverpool
+  tv: ""
+560763@fixture-fetcher:
+  date: 2027-01-30 12:00
+  game: Brentford vs Man United
+  tv: ""
+560780@fixture-fetcher:
+  date: 2027-02-06 12:00
+  game: Man United vs Chelsea
+  tv: ""
+560790@fixture-fetcher:
+  date: 2027-02-10 12:00
+  game: Man United vs Brighton Hove
+  tv: ""
+560798@fixture-fetcher:
+  date: 2027-02-20 12:00
+  game: Nottingham vs Man United
+  tv: ""
+560803@fixture-fetcher:
+  date: 2027-02-27 12:00
+  game: Man United vs Arsenal
+  tv: ""
+560817@fixture-fetcher:
+  date: 2027-03-03 12:00
+  game: Sunderland vs Man United
+  tv: ""
+560830@fixture-fetcher:
+  date: 2027-03-13 12:00
+  game: Man United vs Everton
+  tv: ""
+560834@fixture-fetcher:
+  date: 2027-03-20 12:00
+  game: Man City vs Man United
+  tv: ""
+560844@fixture-fetcher:
+  date: 2027-04-10 12:00
+  game: Man United vs Hull City
+  tv: ""
+560858@fixture-fetcher:
+  date: 2027-04-17 12:00
+  game: Ipswich Town vs Man United
+  tv: ""
+560865@fixture-fetcher:
+  date: 2027-04-24 12:00
+  game: Man United vs Crystal Palace
+  tv: ""
+560874@fixture-fetcher:
+  date: 2027-05-01 12:00
+  game: Coventry City vs Man United
+  tv: ""
+560891@fixture-fetcher:
+  date: 2027-05-08 12:00
+  game: Bournemouth vs Man United
+  tv: ""
+560897@fixture-fetcher:
+  date: 2027-05-15 12:00
+  game: Man United vs Leeds United
+  tv: ""
+560904@fixture-fetcher:
+  date: 2027-05-23 12:00
+  game: Tottenham vs Man United
+  tv: ""
+560918@fixture-fetcher:
+  date: 2027-05-30 12:00
+  game: Man United vs Fulham
+  tv: ""

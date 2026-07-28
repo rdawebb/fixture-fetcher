@@ -26,6 +26,9 @@ CACHE_PATH = Path(os.getenv("CACHE_PATH", "data/cache/teams.yaml"))
 TV_OVERRIDES_PATH = Path(
     os.getenv("TV_OVERRIDES_PATH", "data/overrides/tv_overrides.yaml")
 )
+TEAM_COLORS_PATH = Path(
+    os.getenv("TEAM_COLORS_PATH", "data/overrides/team_colors.yaml")
+)
 
 # API constants
 
@@ -63,6 +66,7 @@ def get_config() -> dict:
         "CACHE_DIR": str(CACHE_DIR),
         "CACHE_PATH": str(CACHE_PATH),
         "TV_OVERRIDES_PATH": str(TV_OVERRIDES_PATH),
+        "TEAM_COLORS_PATH": str(TEAM_COLORS_PATH),
         # Copied so consumers can't mutate the module-level registry
         "FD_COMPETITIONS": dict(FD_COMPETITIONS),
     }

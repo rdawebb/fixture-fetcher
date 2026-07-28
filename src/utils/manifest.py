@@ -6,21 +6,85 @@ from pathlib import Path
 from typing import Any
 
 import orjson
+import yaml
 
-from utils import FFLogger
+from utils import (
+    FFLogger,
+    is_legible,
+    is_valid_hex,
+    parse_club_colors,
+    slugify,
+    text_on,
+)
 
 logger = FFLogger.get_logger(__name__)
 
 
-def generate_manifest(calendars_dir: Path, output_file: Path) -> None:
+def load_color_overrides(path: Path) -> dict[str, str]:
+    """Load curated accent colours, flattening the per-league grouping.
+
+    A missing or malformed file is not fatal — the build falls back to colours
+    derived from the API's club colours.
+
+    Args:
+        path: Path to the team colours YAML file.
+
+    Returns:
+        Mapping of team name to a validated #RRGGBB colour.
+    """
+    try:
+        with open(path) as f:
+            data = yaml.safe_load(f) or {}
+
+    except (OSError, yaml.YAMLError) as e:
+        logger.warning(f"Could not read team colours from {path}: {e}")
+        return {}
+
+    overrides: dict[str, str] = {}
+
+    for league, teams in data.items():
+        if not isinstance(teams, dict):
+            logger.warning(f"Skipping malformed team colours entry: {league}")
+            continue
+
+        for name, colour in teams.items():
+            if not is_valid_hex(colour):
+                logger.warning(f"Skipping invalid colour for '{name}': {colour!r}")
+                continue
+
+            # Honour the curator's choice, but flag anything that will be hard
+            # to read as button text
+            if not is_legible(colour):
+                logger.warning(
+                    f"Colour {colour} for '{name}' is below the 4.5:1 contrast "
+                    "threshold and may be hard to read"
+                )
+
+            overrides[name] = colour
+
+    return overrides
+
+
+def generate_manifest(
+    calendars_dir: Path,
+    output_file: Path,
+    team_cache: dict[str, Any] | None = None,
+    color_overrides: dict[str, str] | None = None,
+) -> None:
     """Generate a JSON manifest of available ICS calendars.
 
     Scans the calendars directory structure and creates a manifest file
     that lists all available calendars organized by league and team.
 
+    When a team cache is supplied, each team also carries its real name, crest
+    URL and accent colour. Without one the manifest falls back to un-slugging
+    directory names and emits no colour or crest.
+
     Args:
         calendars_dir: Path to the calendars directory (e.g., public/calendars)
         output_file: Path where the manifest JSON file will be written
+        team_cache: Parsed contents of teams.yaml, keyed by league then team name
+        color_overrides: Accent colour per team name, overriding the derived one
     """
     if not calendars_dir.exists():
         logger.warning(f"Calendars directory not found: {calendars_dir}")
@@ -28,6 +92,7 @@ def generate_manifest(calendars_dir: Path, output_file: Path) -> None:
 
     manifest: dict[str, Any] = {"calendars": []}
     league_teams: dict[str, dict[str, Any]] = {}
+    team_index = _index_teams_by_slug(team_cache)
 
     # Scan directory structure
     for league_dir in sorted(calendars_dir.iterdir()):
@@ -42,7 +107,10 @@ def generate_manifest(calendars_dir: Path, output_file: Path) -> None:
                 continue
 
             team_slug = team_dir.name
-            team_name = _unslug(team_slug)
+            record = team_index.get(team_slug, {})
+            # Un-slugging mangles names ("man-utd", "afc-bournemouth"), so it is
+            # only a fallback for teams missing from the cache
+            team_name = record.get("name") or _unslug(team_slug)
 
             competitions: list[dict[str, str]] = []
 
@@ -73,13 +141,24 @@ def generate_manifest(calendars_dir: Path, output_file: Path) -> None:
                         "teams": [],
                     }
 
-                league_teams[league_slug]["teams"].append(
-                    {
-                        "name": team_name,
-                        "slug": team_slug,
-                        "competitions": competitions,
-                    }
+                team_entry: dict[str, Any] = {
+                    "name": team_name,
+                    "slug": team_slug,
+                }
+
+                colour = (color_overrides or {}).get(team_name) or parse_club_colors(
+                    record.get("club_colors")
                 )
+                # Omit rather than emit nulls, so the page keeps its CSS default
+                if colour:
+                    team_entry["color"] = colour
+                    team_entry["text_on_color"] = text_on(colour)
+
+                if record.get("crest"):
+                    team_entry["crest"] = record["crest"]
+
+                team_entry["competitions"] = competitions
+                league_teams[league_slug]["teams"].append(team_entry)
 
     # Convert to list
     for league_slug in sorted(league_teams.keys()):
@@ -99,6 +178,46 @@ def generate_manifest(calendars_dir: Path, output_file: Path) -> None:
 
     logger.info(f"Generated calendar manifest at {output_file}")
     logger.debug(f"Manifest contains {len(manifest['calendars'])} league(s)")
+
+
+def _index_teams_by_slug(
+    team_cache: dict[str, Any] | None,
+) -> dict[str, dict[str, Any]]:
+    """Index cached teams by the slug used for their calendar directory.
+
+    Calendar directories are named after the team's short name (see
+    ``app.cli.build``), so that is the primary key. The full name is indexed as
+    a fallback for teams cached without a short name.
+
+    Args:
+        team_cache: Parsed contents of teams.yaml, keyed by league then team name
+
+    Returns:
+        Mapping of directory slug to a record carrying the team's full name,
+        club colours and crest.
+    """
+    if not team_cache:
+        return {}
+
+    index: dict[str, dict[str, Any]] = {}
+
+    for teams in team_cache.values():
+        if not isinstance(teams, dict):
+            continue
+
+        for name, data in teams.items():
+            data = data or {}
+            record = {
+                "name": name,
+                "club_colors": data.get("club_colors"),
+                "crest": data.get("crest"),
+            }
+
+            # Full name first so the short name wins where the two collide
+            index.setdefault(slugify(name), record)
+            index[slugify(data.get("short_name") or name)] = record
+
+    return index
 
 
 def _unslug(slug: str, uppercase: bool = False) -> str:

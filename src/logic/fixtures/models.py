@@ -3,6 +3,10 @@
 from dataclasses import dataclass
 from datetime import datetime
 
+# Appended to the fixture id to form the calendar UID. Override files can be
+# keyed on either form, so the two must stay in step.
+UID_SUFFIX = "@fixture-fetcher"
+
 
 @dataclass
 class Fixture:
@@ -33,6 +37,15 @@ class Fixture:
     status: str
     tv: str | None
     is_home: bool
+
+    @property
+    def uid(self) -> str:
+        """Return the fixture's calendar UID.
+
+        Returns:
+            The id with the calendar UID suffix appended.
+        """
+        return f"{self.id}{UID_SUFFIX}"
 
     def __str__(self) -> str:
         """Return a human-readable representation of the fixture.

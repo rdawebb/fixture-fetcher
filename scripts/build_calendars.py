@@ -9,10 +9,13 @@ import yaml
 
 from app.cli import build, cache_teams
 from backend.config import get_config
-from utils.manifest import generate_manifest
+from utils.manifest import generate_manifest, load_color_overrides
 
 config = get_config()
 CACHE_PATH = config.get("CACHE_PATH", Path("data/cache/teams.yaml"))
+TEAM_COLORS_PATH = Path(
+    config.get("TEAM_COLORS_PATH", "data/overrides/team_colors.yaml")
+)
 FD_COMPETITIONS = config.get("FD_COMPETITIONS", {"PL": "Premier League"})
 
 
@@ -30,23 +33,33 @@ def refresh_team_cache() -> None:
         print(f"⚠️  Could not refresh team cache, falling back to cached teams: {e}")
 
 
-def load_pl_teams(cache_path: Path) -> list[str]:
-    """Load Premier League teams from the cache file.
+def load_team_cache(cache_path: Path) -> dict:
+    """Load the whole team cache, keyed by league then team name.
 
     Args:
         cache_path: Path to the cache file.
 
     Returns:
-        List of Premier League team names.
+        Parsed cache contents, including each team's colours and crest.
     """
     try:
         with open(cache_path) as f:
-            teams_data = yaml.safe_load(f) or {}
+            return yaml.safe_load(f) or {}
 
     except (FileNotFoundError, yaml.YAMLError) as e:
         print(f"❌ Error loading cache file: {e}")
         sys.exit(1)
 
+
+def load_pl_teams(teams_data: dict) -> list[str]:
+    """Pull the Premier League team names out of the cache.
+
+    Args:
+        teams_data: Parsed cache contents from load_team_cache.
+
+    Returns:
+        List of Premier League team names.
+    """
     pl_teams = teams_data.get("Premier League", [])
     if not pl_teams:
         print("❌ No Premier League teams found in cache")
@@ -55,11 +68,13 @@ def load_pl_teams(cache_path: Path) -> list[str]:
     return list(pl_teams.keys())
 
 
-def build_calendars(teams: list[str]):
+def build_calendars(teams: list[str], team_cache: dict | None = None):
     """Build calendar files for the specified teams and competitions.
 
     Args:
         teams: List of team names to build calendars for.
+        team_cache: Parsed team cache, used to add names, colours and crests to
+            the manifest.
     """
     calendars_dir = Path("public/calendars")
 
@@ -84,6 +99,8 @@ def build_calendars(teams: list[str]):
             generate_manifest(
                 calendars_dir=calendars_dir,
                 output_file=Path("public/calendars.json"),
+                team_cache=team_cache,
+                color_overrides=load_color_overrides(TEAM_COLORS_PATH),
             )
             print("✅ Calendar manifest generated successfully")
 
@@ -122,6 +139,7 @@ if __name__ == "__main__":
     if not args.teams:
         refresh_team_cache()
 
-    teams_to_build = args.teams if args.teams else load_pl_teams(CACHE_PATH)
+    team_cache = load_team_cache(CACHE_PATH)
+    teams_to_build = args.teams if args.teams else load_pl_teams(team_cache)
 
-    build_calendars(teams_to_build)
+    build_calendars(teams_to_build, team_cache)

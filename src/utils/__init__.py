@@ -1,5 +1,6 @@
 """Utilities module."""
 
+from .colors import is_legible, is_valid_hex, parse_club_colors, text_on
 from .errors import (
     APIError,
     ApplicationError,
@@ -23,6 +24,7 @@ from .errors import (
     ValidationError,
 )
 from .logging import FFLogger
+from .text import slugify
 
 __all__ = [
     "APIError",
@@ -46,4 +48,9 @@ __all__ = [
     "TimeoutError",
     "UnknownAPIError",
     "ValidationError",
+    "is_legible",
+    "is_valid_hex",
+    "parse_club_colors",
+    "slugify",
+    "text_on",
 ]

@@ -16,6 +16,7 @@ from utils import (
     InvalidInputError,
     TeamNotFoundError,
     TeamsCacheError,
+    slugify,
 )
 
 logger = FFLogger.get_logger(__name__)
@@ -28,16 +29,8 @@ TV_OVERRIDES_PATH = Path(
 )
 
 
-def _slug(s: str) -> str:
-    """Convert a club name to a slug format
-
-    Args:
-        s: Input string to convert
-
-    Returns:
-        Slugified string
-    """
-    return "".join(c.lower() if c.isalnum() else "-" for c in s).strip("-")
+# Kept as an alias so slugs stay identical to the ones the manifest matches against
+_slug = slugify
 
 
 def build(

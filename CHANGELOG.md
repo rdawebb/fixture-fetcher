@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 - Postponed, suspended and cancelled matches now stay in calendars marked as cancelled, instead of silently disappearing
 - Fixtures whose kick-off time is not yet confirmed are marked as tentative and labelled "Kick-off time TBC"
+- Team crests and club colours now appear on the calendars page
+- `data/overrides/team_colors.yaml` allows overriding of team's accent colour when the one derived from the API looks wrong; its location is configurable via `TEAM_COLORS_PATH`
 
 ### Changed
 
@@ -22,6 +24,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Match locations (stadium names) now appear in calendar events
 - Calendar feeds are now valid iCalendar: every event carries the required `DTSTAMP`, and fixtures with no scheduled date are omitted rather than written without a date
 - Network failures while looking up a team now report a clear connection error instead of an unrelated crash
+- Team names on the calendars page now come from the team cache, so clubs are no longer mangled by un-slugging their folder name
+
+### Security
+
+- Team, league and competition names from the manifest are HTML-escaped before being rendered, and accent colours are validated as plain hex before being written into a `style` attribute
 
 ## [0.4.0]
 

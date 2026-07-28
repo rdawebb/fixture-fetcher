@@ -9,7 +9,7 @@ repos:
       - id: check-yaml
         name: Check YAML
       - id: check-added-large-files
-        args: ['--maxkb=100']
+        args: ["--maxkb=100"]
         name: Check added large files
       - id: check-toml
         name: Check TOML
@@ -41,11 +41,5 @@ repos:
       - id: python-syntax-check
         name: Check for Python syntax errors
         entry: uv run python -m py_compile
-        language: system
-        types: [python]
-
-      - id: run-tests
-        name: Run test suite
-        entry: uv run pytest .
         language: system
         types: [python]

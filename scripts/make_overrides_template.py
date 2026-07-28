@@ -15,7 +15,7 @@ fixtures = Filter.apply_filters(fixtures, scheduled_only=True)
 
 output = {}
 for f in fixtures:
-    key = f"{f.id}@fixture-fetcher"
+    key = f.uid
     game = f"{f.home_team} vs {f.away_team}"
     output[str(key)] = {
         "game": game,

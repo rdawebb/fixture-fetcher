@@ -22,6 +22,20 @@ class TestApplyOverrides:
         assert sample_fixtures[1].tv == "BBC One"
         assert sample_fixtures[3].tv == "ITV"
 
+    def test_apply_overrides_by_uid(self, sample_fixtures, temp_yaml_file):
+        """Test applying overrides keyed on the calendar UID."""
+        overrides = {
+            sample_fixtures[1].uid: {"tv": "BBC One"},
+            sample_fixtures[3].uid: {"tv": "ITV"},
+        }
+        temp_yaml_file.write_text(yaml.safe_dump(overrides))
+
+        applied = apply_overrides(sample_fixtures, temp_yaml_file)
+
+        assert applied == 2
+        assert sample_fixtures[1].tv == "BBC One"
+        assert sample_fixtures[3].tv == "ITV"
+
     def test_apply_overrides_by_composite_key(self, sample_fixtures, temp_yaml_file):
         """Test applying overrides by composite key (date:home:away)."""
         overrides = {

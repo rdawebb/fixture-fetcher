@@ -45,7 +45,7 @@ class EventFormatter:
         Returns:
             A unique ID for the fixture.
         """
-        return f"{f.id}@fixture-fetcher"
+        return f.uid
 
     @classmethod
     def format_event(cls, fixture: Fixture) -> Event | None:

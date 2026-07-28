@@ -1,6 +1,7 @@
 """Tests for the manifest module."""
 
 import json
+import logging
 from unittest.mock import patch
 
 import pytest
@@ -9,6 +10,7 @@ from utils.manifest import (
     _get_competition_name,
     _unslug,
     generate_manifest,
+    load_color_overrides,
 )
 
 
@@ -426,3 +428,258 @@ class TestGenerateManifest:
         # Should only have one league
         assert len(manifest["calendars"]) == 1
         assert manifest["calendars"][0]["slug"] == "premier-league"
+
+
+# Matches the calendars_with_single_team fixture, whose directory slug is
+# "manchester-united" — the cache key is the full name, keyed by short name
+TEAM_CACHE = {
+    "Premier League": {
+        "Manchester United FC": {
+            "id": 66,
+            "short_name": "Manchester United",
+            "venue": "Old Trafford",
+            "club_colors": "Red / White",
+            "crest": "https://crests.football-data.org/66.png",
+        }
+    }
+}
+
+
+def _first_team(output_file):
+    """Read the first team out of a generated manifest.
+
+    Args:
+        output_file: Path to the generated manifest.
+
+    Returns:
+        The first team entry of the first league.
+    """
+    with open(output_file) as f:
+        return json.load(f)["calendars"][0]["teams"][0]
+
+
+class TestGenerateManifestTeamMetadata:
+    """Tests for colour, crest and name enrichment from the team cache."""
+
+    def test_no_cache_omits_colour_and_crest(
+        self, calendars_with_single_team, tmp_path
+    ):
+        """Test the manifest is unchanged when no cache is supplied."""
+        calendars_dir, _ = calendars_with_single_team
+        output_file = tmp_path / "manifest.json"
+
+        generate_manifest(calendars_dir, output_file)
+        team = _first_team(output_file)
+
+        assert team["name"] == "Manchester United"
+        assert "color" not in team
+        assert "text_on_color" not in team
+        assert "crest" not in team
+
+    def test_cache_adds_colour_crest_and_real_name(
+        self, calendars_with_single_team, tmp_path
+    ):
+        """Test cached metadata is emitted alongside the real team name."""
+        calendars_dir, _ = calendars_with_single_team
+        output_file = tmp_path / "manifest.json"
+
+        generate_manifest(calendars_dir, output_file, team_cache=TEAM_CACHE)
+        team = _first_team(output_file)
+
+        assert team["name"] == "Manchester United FC"
+        assert team["slug"] == "manchester-united"
+        assert team["color"] == "#D50000"
+        assert team["text_on_color"] == "#ffffff"
+        assert team["crest"] == "https://crests.football-data.org/66.png"
+
+    def test_override_beats_derived_colour(self, calendars_with_single_team, tmp_path):
+        """Test a curated colour wins over the one derived from club colours."""
+        calendars_dir, _ = calendars_with_single_team
+        output_file = tmp_path / "manifest.json"
+
+        generate_manifest(
+            calendars_dir,
+            output_file,
+            team_cache=TEAM_CACHE,
+            color_overrides={"Manchester United FC": "#CF271B"},
+        )
+        team = _first_team(output_file)
+
+        assert team["color"] == "#CF271B"
+        assert team["text_on_color"] == "#ffffff"
+
+    def test_override_keyed_on_full_name_not_slug(
+        self, calendars_with_single_team, tmp_path
+    ):
+        """Test overrides that don't match a cached name are ignored."""
+        calendars_dir, _ = calendars_with_single_team
+        output_file = tmp_path / "manifest.json"
+
+        generate_manifest(
+            calendars_dir,
+            output_file,
+            team_cache=TEAM_CACHE,
+            color_overrides={"manchester-united": "#CF271B"},
+        )
+        team = _first_team(output_file)
+
+        assert team["color"] == "#D50000"
+
+    def test_team_missing_from_cache_falls_back(
+        self, calendars_with_single_team, tmp_path
+    ):
+        """Test an uncached team keeps the un-slugged name and gains no colour."""
+        calendars_dir, _ = calendars_with_single_team
+        output_file = tmp_path / "manifest.json"
+
+        generate_manifest(
+            calendars_dir,
+            output_file,
+            team_cache={"Premier League": {"Arsenal FC": {"short_name": "Arsenal"}}},
+        )
+        team = _first_team(output_file)
+
+        assert team["name"] == "Manchester United"
+        assert "color" not in team
+        assert "crest" not in team
+
+    def test_null_colours_and_crest_are_omitted(
+        self, calendars_with_single_team, tmp_path
+    ):
+        """Test the API's nulls never reach the manifest."""
+        calendars_dir, _ = calendars_with_single_team
+        output_file = tmp_path / "manifest.json"
+
+        generate_manifest(
+            calendars_dir,
+            output_file,
+            team_cache={
+                "Premier League": {
+                    "Manchester United FC": {
+                        "short_name": "Manchester United",
+                        "club_colors": None,
+                        "crest": None,
+                    }
+                }
+            },
+        )
+        team = _first_team(output_file)
+
+        assert team["name"] == "Manchester United FC"
+        assert "color" not in team
+        assert "text_on_color" not in team
+        assert "crest" not in team
+
+    def test_team_cached_without_short_name(self, calendars_with_single_team, tmp_path):
+        """Test teams added by _add_to_cache still match on their full name."""
+        calendars_dir, _ = calendars_with_single_team
+        output_file = tmp_path / "manifest.json"
+
+        generate_manifest(
+            calendars_dir,
+            output_file,
+            team_cache={
+                "Premier League": {
+                    "Manchester United": {"crest": "https://example.com/66.png"}
+                }
+            },
+        )
+        team = _first_team(output_file)
+
+        assert team["crest"] == "https://example.com/66.png"
+        assert "color" not in team
+
+    def test_unmappable_club_colours_omit_colour(
+        self, calendars_with_single_team, tmp_path
+    ):
+        """Test colours the word map doesn't know leave the CSS default in place."""
+        calendars_dir, _ = calendars_with_single_team
+        output_file = tmp_path / "manifest.json"
+
+        generate_manifest(
+            calendars_dir,
+            output_file,
+            team_cache={
+                "Premier League": {
+                    "Manchester United FC": {
+                        "short_name": "Manchester United",
+                        "club_colors": "Turquoise / Beige",
+                    }
+                }
+            },
+        )
+        team = _first_team(output_file)
+
+        assert "color" not in team
+
+    def test_competitions_key_is_last(self, calendars_with_single_team, tmp_path):
+        """Test the competitions list stays at the end of each team entry."""
+        calendars_dir, _ = calendars_with_single_team
+        output_file = tmp_path / "manifest.json"
+
+        generate_manifest(calendars_dir, output_file, team_cache=TEAM_CACHE)
+        team = _first_team(output_file)
+
+        assert list(team)[-1] == "competitions"
+
+
+class TestLoadColorOverrides:
+    """Tests for load_color_overrides function."""
+
+    def test_flattens_leagues(self, tmp_path):
+        """Test per-league grouping is flattened to a single mapping."""
+        path = tmp_path / "team_colors.yaml"
+        path.write_text(
+            'Premier League:\n  "Arsenal FC": "#D70106"\n'
+            'Championship:\n  "Leeds United FC": "#1D428A"\n'
+        )
+
+        assert load_color_overrides(path) == {
+            "Arsenal FC": "#D70106",
+            "Leeds United FC": "#1D428A",
+        }
+
+    def test_missing_file_returns_empty(self, tmp_path):
+        """Test a missing overrides file is not fatal."""
+        assert load_color_overrides(tmp_path / "nope.yaml") == {}
+
+    def test_malformed_yaml_returns_empty(self, tmp_path):
+        """Test unparseable YAML is not fatal."""
+        path = tmp_path / "team_colors.yaml"
+        path.write_text("Premier League:\n  - [unclosed\n")
+
+        assert load_color_overrides(path) == {}
+
+    def test_invalid_colours_are_skipped(self, tmp_path):
+        """Test only well-formed #RRGGBB values survive."""
+        path = tmp_path / "team_colors.yaml"
+        path.write_text(
+            "Premier League:\n"
+            '  "Good FC": "#D70106"\n'
+            '  "Short FC": "#FFF"\n'
+            '  "No Hash FC": "D70106"\n'
+            '  "Named FC": "red"\n'
+            '  "Null FC": null\n'
+        )
+
+        assert load_color_overrides(path) == {"Good FC": "#D70106"}
+
+    def test_non_mapping_league_is_skipped(self, tmp_path):
+        """Test a league entry that isn't a mapping doesn't abort the load."""
+        path = tmp_path / "team_colors.yaml"
+        path.write_text(
+            "Premier League:\n  - Arsenal FC\n"
+            'Championship:\n  "Leeds United FC": "#1D428A"\n'
+        )
+
+        assert load_color_overrides(path) == {"Leeds United FC": "#1D428A"}
+
+    def test_low_contrast_colour_is_kept_but_warned(self, tmp_path, caplog):
+        """Test a hard-to-read curated colour is honoured, with a warning."""
+        path = tmp_path / "team_colors.yaml"
+        path.write_text('Premier League:\n  "Pale FC": "#EEEEEE"\n')
+
+        with caplog.at_level(logging.WARNING):
+            assert load_color_overrides(path) == {"Pale FC": "#EEEEEE"}
+
+        assert "contrast" in caplog.text

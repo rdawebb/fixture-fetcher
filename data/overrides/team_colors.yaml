@@ -1,0 +1,35 @@
+# Accent colour overrides, keyed by full team name as it appears in
+# data/cache/teams.yaml.
+#
+# Teams not listed here get a colour derived from the API's clubColors string,
+# which is words rather than hex ("Red / White") and so collapses every red club
+# onto the same generic red. Override anything that looks wrong.
+#
+# Values must be #RRGGBB. They are used as button text against #f0f0f0, so aim
+# for a contrast ratio of at least 4.5:1 — a few brand colours are a shade too
+# light and have been darkened slightly here to clear it. Anything below the
+# threshold is used as-is but logged as a warning at build time.
+
+Premier League:
+  "Arsenal FC": "#D70106"
+  "Aston Villa FC": "#670E36"
+  "Brentford FC": "#D20000"
+  "Brighton & Hove Albion FC": "#0057B8"
+  "Burnley FC": "#6C1D45"
+  "Chelsea FC": "#034694"
+  "Coventry City FC": "#005D9E"
+  "Crystal Palace FC": "#1B458F"
+  "Everton FC": "#003399"
+  "Fulham FC": "#000000"
+  "Hull City AFC": "#8F5B00"
+  "Ipswich Town FC": "#0044A9"
+  "Leeds United FC": "#1D428A"
+  "Liverpool FC": "#C8102E"
+  "Manchester City FC": "#1C6EA4"
+  "Manchester United FC": "#CF271B"
+  "Newcastle United FC": "#241F20"
+  "Nottingham Forest FC": "#DD0000"
+  "Sunderland AFC": "#D41527"
+  "Tottenham Hotspur FC": "#132257"
+  "West Ham United FC": "#7A263A"
+  "Wolverhampton Wanderers FC": "#7A6000"

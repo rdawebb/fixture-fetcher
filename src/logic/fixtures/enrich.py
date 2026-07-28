@@ -25,7 +25,14 @@ def apply_overrides(fixtures: list[Fixture], overrides_path: Path) -> int:
         return 0
 
     data = yaml.safe_load(overrides_path.read_text()) or {}
-    by_id = {f.id: f for f in fixtures}
+
+    # Templates from scripts/make_overrides_template.py are keyed on the calendar
+    # UID so keys can be copied straight out of a subscribed feed, but files
+    # written by hand tend to use the bare id. Accept either.
+    by_id: dict[str, Fixture] = {}
+    for f in fixtures:
+        by_id[f.id] = f
+        by_id[f.uid] = f
 
     applied = 0
     for key, val in data.items():
