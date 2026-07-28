@@ -1,5 +1,6 @@
 """Tests for the filters module."""
 
+from dataclasses import replace
 from datetime import datetime, timezone
 from unittest.mock import Mock
 
@@ -32,6 +33,11 @@ class TestFilter:
                 lambda results: all(
                     r.status in ("SCHEDULED", "TIMED") for r in results
                 ),
+            ),
+            (
+                lambda f: Filter.only_upcoming(f),
+                3,
+                lambda results: all(r.status != "FINISHED" for r in results),
             ),
             (
                 lambda f: Filter.only_televised(f),
@@ -220,3 +226,38 @@ class TestFilter:
 
         with pytest.raises(DataProcessingError):
             Filter.only_scheduled([bad_fixture])
+
+    def test_only_upcoming_attribute_error(self):
+        """Test only_upcoming handles missing status attribute."""
+        bad_fixture = Mock()
+        del bad_fixture.status
+
+        with pytest.raises(DataProcessingError):
+            Filter.only_upcoming([bad_fixture])
+
+    @pytest.mark.parametrize(
+        "status,kept",
+        [
+            ("SCHEDULED", True),
+            ("TIMED", True),
+            ("POSTPONED", True),
+            ("SUSPENDED", True),
+            ("CANCELLED", True),
+            ("FINISHED", False),
+            ("IN_PLAY", False),
+        ],
+    )
+    def test_only_upcoming_keeps_called_off_fixtures(
+        self, sample_fixture, status, kept
+    ):
+        """Test that only_upcoming keeps unplayed fixtures, including called-off ones."""
+        result = Filter.only_upcoming([replace(sample_fixture, status=status)])
+
+        assert bool(result) is kept
+
+    def test_apply_filters_upcoming_only(self, sample_fixtures):
+        """Test that apply_filters exposes the upcoming filter."""
+        result = Filter.apply_filters(sample_fixtures, upcoming_only=True)
+
+        assert all(f.status != "FINISHED" for f in result)
+        assert len(result) == 3

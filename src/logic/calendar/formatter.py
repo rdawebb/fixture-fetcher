@@ -12,6 +12,25 @@ logger = FFLogger.get_logger(__name__)
 
 LONDON_TZ = ZoneInfo("Europe/London")
 
+# football-data.org match status -> RFC 5545 STATUS (section 3.8.1.11)
+# Statuses not listed here (FINISHED, IN_PLAY, etc) get no STATUS property
+ICS_STATUS = {
+    "TIMED": "CONFIRMED",  # Kick-off time confirmed
+    "SCHEDULED": "TENTATIVE",  # Date known, kick-off time provisional
+    "POSTPONED": "CANCELLED",
+    "SUSPENDED": "CANCELLED",
+    "CANCELLED": "CANCELLED",
+}
+
+# Not every client renders a CANCELLED event distinctly, some hide it entirely,
+# so the status is spelled out in the description as well
+STATUS_LABEL = {
+    "SCHEDULED": "Kick-off time TBC",
+    "POSTPONED": "Postponed",
+    "SUSPENDED": "Suspended",
+    "CANCELLED": "Cancelled",
+}
+
 
 class EventFormatter:
     """Class to format fixtures into iCalendar events."""
@@ -56,7 +75,15 @@ class EventFormatter:
         event.add("dtend", start + timedelta(hours=2))
         event.add("summary", f"{fixture.home_team} vs {fixture.away_team}")
 
+        ics_status = ICS_STATUS.get(fixture.status)
+        if ics_status:
+            event.add("status", ics_status)
+
         parts = [fixture.competition_code]
+
+        label = STATUS_LABEL.get(fixture.status)
+        if label:
+            parts.append(label)
 
         if fixture.tv is not None:
             parts.append(f"{fixture.tv}")

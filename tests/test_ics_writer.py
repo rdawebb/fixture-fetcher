@@ -1,11 +1,29 @@
 """Tests for the ICS writer module."""
 
+from dataclasses import replace
 from datetime import datetime, timezone
 
-from icalendar import Calendar
+import pytest
+from icalendar import Calendar, Event
 
+from logic.calendar.formatter import EventFormatter
 from logic.calendar.ics_writer import ICSWriter
 from logic.fixtures.models import Fixture
+
+
+def format_event(fixture: Fixture) -> Event:
+    """Format a fixture, asserting that an event was produced.
+
+    Args:
+        fixture: The fixture to format.
+
+    Returns:
+        The formatted event.
+    """
+    event = EventFormatter.format_event(fixture)
+    assert event is not None, "expected an event for a dated fixture"
+
+    return event
 
 
 class TestICSWriter:
@@ -168,10 +186,77 @@ class TestICSWriter:
 
     def test_uid_generation(self, sample_fixture):
         """Test UID generation for events."""
-        from logic.calendar.formatter import EventFormatter
-
         formatter = EventFormatter()
         uid = formatter._uid(sample_fixture)
 
         assert uid == "12345@fixture-fetcher"
         assert "@" in uid
+
+
+class TestEventStatus:
+    """Tests for mapping fixture status onto the iCalendar STATUS property."""
+
+    @pytest.mark.parametrize(
+        "fixture_status,expected_status",
+        [
+            ("TIMED", "CONFIRMED"),
+            ("SCHEDULED", "TENTATIVE"),
+            ("POSTPONED", "CANCELLED"),
+            ("SUSPENDED", "CANCELLED"),
+            ("CANCELLED", "CANCELLED"),
+        ],
+    )
+    def test_status_mapping(self, sample_fixture, fixture_status, expected_status):
+        """Test that each match status maps to the right calendar status."""
+        event = format_event(replace(sample_fixture, status=fixture_status))
+
+        assert str(event["STATUS"]) == expected_status
+
+    @pytest.mark.parametrize("fixture_status", ["FINISHED", "IN_PLAY", "AWARDED"])
+    def test_unmapped_status_omits_property(self, sample_fixture, fixture_status):
+        """Test that a status with no calendar equivalent adds no STATUS."""
+        event = format_event(replace(sample_fixture, status=fixture_status))
+
+        assert event.get("STATUS") is None
+
+    @pytest.mark.parametrize(
+        "fixture_status,expected_label",
+        [
+            ("POSTPONED", "Postponed"),
+            ("CANCELLED", "Cancelled"),
+            ("SUSPENDED", "Suspended"),
+            ("SCHEDULED", "Kick-off time TBC"),
+        ],
+    )
+    def test_status_appears_in_description(
+        self, sample_fixture, fixture_status, expected_label
+    ):
+        """Test that the status is spelled out for clients that hide CANCELLED."""
+        event = format_event(replace(sample_fixture, status=fixture_status))
+
+        assert expected_label in str(event["DESCRIPTION"])
+
+    def test_confirmed_fixture_has_no_status_label(self, sample_fixture):
+        """Test that a normally scheduled fixture gets no description label."""
+        event = format_event(replace(sample_fixture, status="TIMED"))
+
+        description = str(event["DESCRIPTION"])
+        assert description == "PL | Sky Sports | Matchday 10 | Old Trafford"
+
+    def test_postponed_fixture_is_written_to_calendar(self, sample_fixture, tmp_path):
+        """Test that a postponed fixture is published, not dropped.
+
+        Postponed matches used to be filtered out, so they vanished from
+        subscribers' calendars with no explanation.
+        """
+        postponed = replace(sample_fixture, status="POSTPONED")
+
+        output_path = tmp_path / "test.ics"
+        ICSWriter([postponed]).write(output_path)
+
+        with open(output_path, "rb") as f:
+            cal = Calendar.from_ical(f.read())
+
+        event = next(c for c in cal.walk() if c.name == "VEVENT")
+        assert str(event["STATUS"]) == "CANCELLED"
+        assert "Postponed" in str(event["DESCRIPTION"])

@@ -6,9 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Added
+
+- Postponed, suspended and cancelled matches now stay in calendars marked as cancelled, instead of silently disappearing
+- Fixtures whose kick-off time is not yet confirmed are marked as tentative and labelled "Kick-off time TBC"
+
 ### Fixed
 
-- Calendars now cover the current season's teams — published feeds had been pinned to the team list captured on the first automated build
+- Calendars now cover the current season's teams; published feeds had been pinned to the team list captured on the first automated build
 - Match locations (stadium names) now appear in calendar events
 - Calendar feeds are now valid iCalendar: every event carries the required `DTSTAMP`, and fixtures with no scheduled date are omitted rather than written without a date
 - Network failures while looking up a team now report a clear connection error instead of an unrelated crash

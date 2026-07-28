@@ -198,11 +198,12 @@ class TestCalendarComparison:
 
         assert len(events) == 1
         event = next(iter(events))
-        assert len(event) == 3
+        assert len(event) == 4
         assert isinstance(event, tuple)
         assert event[0] == "test-id"  # UID
         assert isinstance(event[1], str)  # DTSTART as string
         assert isinstance(event[2], str)  # DESCRIPTION as string
+        assert isinstance(event[3], str)  # STATUS as string
 
     @pytest.mark.parametrize(
         "description,old_events,new_events,expected_result",
@@ -431,6 +432,40 @@ class TestCalendarComparison:
 
         write(old_dir / "calendar.ics", now + timedelta(days=1))
         write(new_dir / "calendar.ics", now + timedelta(days=2))
+
+        assert comparison.compare_calendars(old_dir, new_dir) is True
+
+    def test_compare_calendars_detects_status_only_change(self, comparison, tmp_path):
+        """Test that a postponement is detected when only STATUS changes.
+
+        A postponed fixture can keep its original date and description, so
+        STATUS has to take part in the comparison or the deploy is skipped.
+        """
+        old_dir = tmp_path / "old"
+        new_dir = tmp_path / "new"
+        old_dir.mkdir()
+        new_dir.mkdir()
+
+        start = datetime.now(timezone.utc) + timedelta(days=2)
+
+        def write(path: Path, status: str) -> None:
+            cal = Calendar()
+            cal.add("prodid", "-//Test//Test//EN")
+            cal.add("version", "2.0")
+
+            event = Event()
+            event.add("uid", "match1")
+            event.add("summary", "Match")
+            event.add("description", "PL")
+            event.add("dtstart", start)
+            event.add("dtend", start + timedelta(hours=2))
+            event.add("status", status)
+            cal.add_component(event)
+
+            path.write_bytes(cal.to_ical())
+
+        write(old_dir / "calendar.ics", "CONFIRMED")
+        write(new_dir / "calendar.ics", "CANCELLED")
 
         assert comparison.compare_calendars(old_dir, new_dir) is True
 

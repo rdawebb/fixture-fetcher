@@ -65,6 +65,7 @@ class CalendarComparison:
                                 str(event.get("UID", "")),
                                 str(start),
                                 str(event.get("DESCRIPTION", "")),
+                                str(event.get("STATUS", "")),
                             )
                         )
 

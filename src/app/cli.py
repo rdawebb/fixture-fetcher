@@ -119,7 +119,7 @@ def build(
             logger.info(
                 f"Fetched fixtures for team '{short_name}' - waiting {API_RATE_LIMIT_DELAY} seconds..."
             )
-            fixtures = Filter.apply_filters(fixtures, scheduled_only=True)
+            fixtures = Filter.apply_filters(fixtures, upcoming_only=True)
 
             fixtures_by_comp = {}
             for fixture in fixtures:

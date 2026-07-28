@@ -10,6 +10,9 @@ from utils import DataProcessingError, FFLogger, InvalidInputError
 
 logger = FFLogger.get_logger(__name__)
 
+# Statuses for matches that have not been played, including those suspended/cancelled
+UPCOMING_STATUSES = ("SCHEDULED", "TIMED", "POSTPONED", "SUSPENDED", "CANCELLED")
+
 
 class Filter:
     """Class for filtering fixtures based on various criteria."""
@@ -18,6 +21,7 @@ class Filter:
     def apply_filters(
         fixtures: Iterable[Fixture],
         scheduled_only: bool = False,
+        upcoming_only: bool = False,
         home_only: bool = False,
         away_only: bool = False,
         televised_only: bool = False,
@@ -27,6 +31,7 @@ class Filter:
         Args:
             fixtures: An iterable of Fixture objects.
             scheduled_only: Filter to only scheduled fixtures.
+            upcoming_only: Filter to only unplayed fixtures, including called-off ones.
             home_only: Filter to only home fixtures.
             away_only: Filter to only away fixtures.
             televised_only: Filter to only televised fixtures.
@@ -38,6 +43,8 @@ class Filter:
 
         if scheduled_only:
             result = Filter.only_scheduled(result)
+        if upcoming_only:
+            result = Filter.only_upcoming(result)
         if home_only:
             result = Filter.only_home(result)
         if away_only:
@@ -120,6 +127,34 @@ class Filter:
             logger.error(f"Error filtering scheduled fixtures: {e}")
             raise DataProcessingError(
                 "Failed to filter scheduled fixtures", context=e
+            ) from e
+
+    @staticmethod
+    def only_upcoming(fixtures: Iterable[Fixture]) -> list[Fixture]:
+        """Filter fixtures to include only those not yet played.
+
+        Unlike only_scheduled, this keeps postponed, suspended and cancelled
+        fixtures so they can be published as cancelled calendar events.
+
+        Args:
+            fixtures: An iterable of Fixture objects.
+
+        Returns:
+            A list of Fixture objects that have not been played.
+        """
+        try:
+            fixtures_list = list(fixtures)
+            result = [f for f in fixtures_list if f.status in UPCOMING_STATUSES]
+            logger.info(
+                f"Filtered {len(result)} upcoming fixtures from {len(fixtures_list)} total fixtures."
+            )
+
+            return result
+
+        except AttributeError as e:
+            logger.error(f"Error filtering upcoming fixtures: {e}")
+            raise DataProcessingError(
+                "Failed to filter upcoming fixtures", context=e
             ) from e
 
     @staticmethod
