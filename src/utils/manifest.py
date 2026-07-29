@@ -2,14 +2,17 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 import orjson
 import yaml
+from icalendar import Calendar
 
 from utils import (
     FFLogger,
+    as_datetime,
     is_legible,
     is_valid_hex,
     parse_club_colors,
@@ -80,6 +83,9 @@ def generate_manifest(
     URL and accent colour. Without one the manifest falls back to un-slugging
     directory names and emits no colour or crest.
 
+    Each team also carries the ISO 8601 timestamp of its next kick-off, read
+    back out of the calendars being scanned.
+
     Args:
         calendars_dir: Path to the calendars directory (e.g., public/calendars)
         output_file: Path where the manifest JSON file will be written
@@ -93,6 +99,9 @@ def generate_manifest(
     manifest: dict[str, Any] = {"calendars": []}
     league_teams: dict[str, dict[str, Any]] = {}
     team_index = _index_teams_by_slug(team_cache)
+
+    # One reference point for the whole manifest
+    now = datetime.now().astimezone()
 
     # Scan directory structure
     for league_dir in sorted(calendars_dir.iterdir()):
@@ -113,9 +122,14 @@ def generate_manifest(
             team_name = record.get("name") or _unslug(team_slug)
 
             competitions: list[dict[str, str]] = []
+            next_fixture: datetime | None = None
 
             # Find all ICS files for team
             for ics_file in sorted(team_dir.glob(f"{team_slug}.*.ics")):
+                kickoff = _next_kickoff(ics_file, now)
+                if kickoff and (next_fixture is None or kickoff < next_fixture):
+                    next_fixture = kickoff
+
                 parts = ics_file.stem.split(".")
                 if len(parts) >= 2:
                     comp_code_slug = ".".join(parts[1:])
@@ -157,6 +171,10 @@ def generate_manifest(
                 if record.get("crest"):
                     team_entry["crest"] = record["crest"]
 
+                # Absent during off-season
+                if next_fixture:
+                    team_entry["next_fixture"] = next_fixture.isoformat()
+
                 team_entry["competitions"] = competitions
                 league_teams[league_slug]["teams"].append(team_entry)
 
@@ -180,13 +198,51 @@ def generate_manifest(
     logger.debug(f"Manifest contains {len(manifest['calendars'])} league(s)")
 
 
+def _next_kickoff(ics_file: Path, now: datetime) -> datetime | None:
+    """Find the earliest upcoming kick-off in a calendar file.
+
+    Called-off matches are kept in the feed, but are skipped here.
+
+    Args:
+        ics_file: Path to the ICS file to read.
+        now: The moment fixtures are considered upcoming from.
+
+    Returns:
+        The earliest kick-off after `now`, or None if there is none.
+    """
+    earliest: datetime | None = None
+
+    try:
+        with open(ics_file, "rb") as f:
+            cal = Calendar.from_ical(f.read())
+
+        for event in cal.walk("VEVENT"):
+            dtstart = event.get("DTSTART")
+            if dtstart is None:
+                continue
+
+            if str(event.get("STATUS", "")).upper() == "CANCELLED":
+                continue
+
+            start = as_datetime(dtstart.dt)
+            if start > now and (earliest is None or start < earliest):
+                earliest = start
+
+    # Best-effort metadata, so a bad file only costs this team its next-fixture line
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"Could not read next fixture from {ics_file}: {e}")
+        return None
+
+    return earliest
+
+
 def _index_teams_by_slug(
     team_cache: dict[str, Any] | None,
 ) -> dict[str, dict[str, Any]]:
     """Index cached teams by the slug used for their calendar directory.
 
     Calendar directories are named after the team's short name (see
-    ``app.cli.build``), so that is the primary key. The full name is indexed as
+    `app.cli.build`), so that is the primary key. The full name is indexed as
     a fallback for teams cached without a short name.
 
     Args:

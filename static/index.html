@@ -1,27 +1,28 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Fixture Fetcher</title>
-    <link rel="stylesheet" href="style.css">
-  </head>
-  <body>
-    <h1>🗓️ Fixture Fetcher ⚽️</h1>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Fixture Fetcher</title>
+        <link rel="stylesheet" href="style.css" />
+    </head>
+    <body>
+        <h1>🗓️ Fixture Fetcher ⚽️</h1>
 
-    <div class="instructions">
-      <p>
-        Use these URLs to subscribe in Google, Apple, or your calendar of choice.
-        Click on a link to get the calendar URL, or click the download button to get the .ics file.
-      </p>
-    </div>
+        <div class="instructions">
+            <p>
+                Keep a team's fixtures in Google, Apple, or the calendar of your
+                choice. <strong>Subscribe</strong> adds the feed straight to
+                your calendar app and keeps it up to date. Click the competition
+                name to copy its URL for apps that ask for one, or download a
+                one-off .ics file.
+            </p>
+        </div>
 
-    <div id="loading" class="loading">
-      Loading calendars...
-    </div>
-    <div id="content"></div>
-    <div id="error"></div>
+        <div id="loading" class="loading">Loading calendars...</div>
+        <div id="content"></div>
+        <div id="error"></div>
 
-  <script src="main.js"></script>
-  </body>
+        <script type="module" src="main.js"></script>
+    </body>
 </html>

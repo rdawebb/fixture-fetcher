@@ -54,19 +54,14 @@ if __name__ == "__main__":
 
     if old_dir.exists() and new_dir.exists():
         dcmp = dircmp(str(old_dir), str(new_dir))
+
         if dcmp.left_only or dcmp.right_only:
-            non_calendar_diff = any(
-                name != "calendars" and name != "calendars.json"
-                for name in dcmp.left_only + dcmp.right_only
+            static_changed = any(
+                name != "calendars" for name in dcmp.left_only + dcmp.right_only
             )
-            static_changed = non_calendar_diff
 
         if dcmp.diff_files:
-            non_calendar_diff_files = [
-                name for name in dcmp.diff_files if name != "calendars.json"
-            ]
-            if non_calendar_diff_files:
-                static_changed = True
+            static_changed = True
 
         # Recursively check subdirectories (excluding calendars)
         for common_dir in dcmp.common_dirs:

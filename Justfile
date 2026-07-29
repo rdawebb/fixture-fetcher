@@ -40,6 +40,15 @@ pre:
 run:
     uv run python -m src.app.shell
 
+# Build the calendars and the static site into public/
+build-site:
+    uv run scripts/build_calendars.py
+    node scripts/build_site.js
+
+# Serve the built site
+serve: build-site
+    uv run python -m http.server -d public 8000
+
 # Generate overrides template
 overrides:
     uv run python -m scripts.make_overrides_template

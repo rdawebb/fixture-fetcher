@@ -1,10 +1,47 @@
 /* Index Stylesheet */
 
 :root {
-    /* Fallback accent. Each .team-section overrides these inline with its own
-     club colours; teams without colours in the manifest keep these. */
+    color-scheme: light dark;
+
+    --bg: #f5f5f5;
+    --surface: #ffffff;
+    --surface-2: #f9f9f9;
+    --text: #333333;
+    --heading: #222222;
+    --muted: #666666;
+    --border: #dddddd;
+    --brand: #0066cc;
+    --panel-bg: #e6f2ff;
+    --chip-bg: #f0f0f0;
+    --error-bg: #ffe6e6;
+    --error-fg: #cc0000;
+    --shadow: rgba(0, 0, 0, 0.1);
+
+    /* Fallback accent. Each .team-section overrides these with its own club
+     colours; teams without colours in the manifest keep these. */
     --accent: #000;
     --accent-text: #fff;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #16181c;
+        --surface: #1e2126;
+        --surface-2: #24272e;
+        --text: #e6e6e6;
+        --heading: #f2f2f2;
+        --muted: #9aa0a6;
+        --border: #3a3f47;
+        --brand: #6cabdd;
+        --panel-bg: #1b2733;
+        --chip-bg: #2a2e35;
+        --error-bg: #3a1d1d;
+        --error-fg: #ff8a8a;
+        --shadow: rgba(0, 0, 0, 0.5);
+
+        --accent: #fff;
+        --accent-text: #111;
+    }
 }
 
 * {
@@ -18,27 +55,26 @@ body {
     max-width: 900px;
     margin: 0 auto;
     padding: 20px;
-    color: #333;
-    background-color: #f5f5f5;
+    color: var(--text);
+    background-color: var(--bg);
 }
 
 h1 {
-    color: #222;
-    border-bottom: 3px solid #0066cc;
+    color: var(--heading);
+    border-bottom: 3px solid var(--brand);
     padding-bottom: 10px;
     margin-top: 0;
 }
 
 h2 {
-    color: #0066cc;
-    margin-top: 0;
-    margin-bottom: 15px;
+    color: var(--brand);
+    margin: 0;
 }
 
 /* Instructions panel */
 .instructions {
-    background: #e6f2ff;
-    border: 1px solid #0066cc;
+    background: var(--panel-bg);
+    border: 1px solid var(--brand);
     padding: 15px;
     border-radius: 4px;
     margin: 20px 0;
@@ -54,14 +90,14 @@ h2 {
     text-align: center;
     padding: 40px;
     font-size: 16px;
-    color: #666;
+    color: var(--muted);
 }
 
 /* Error state */
 .error {
-    background: #ffe6e6;
-    border: 1px solid #cc0000;
-    color: #cc0000;
+    background: var(--error-bg);
+    border: 1px solid var(--error-fg);
+    color: var(--error-fg);
     padding: 15px;
     border-radius: 4px;
     margin: 20px 0;
@@ -74,22 +110,57 @@ h2 {
 
 /* League section */
 .league-section {
-    background: white;
+    background: var(--surface);
     padding: 20px;
     margin: 20px 0;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 4px var(--shadow);
 }
 
 .league-section:first-child {
     margin-top: 0;
 }
 
+.league-section > summary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    margin-bottom: 15px;
+    /* The default disclosure triangle is replaced by the chevron below */
+    list-style: none;
+}
+
+.league-section > summary::-webkit-details-marker {
+    display: none;
+}
+
+/* Chevron, drawn in CSS so it inherits the heading colour */
+.league-section > summary::after {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid var(--brand);
+    border-bottom: 2px solid var(--brand);
+    transform: rotate(-45deg);
+    transition: transform 0.2s ease;
+}
+
+.league-section[open] > summary::after {
+    transform: rotate(45deg);
+}
+
+.league-section > summary:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 4px;
+    border-radius: 4px;
+}
+
 /* Team section */
 .team-section {
     margin: 20px 0;
     padding: 15px;
-    background: #f9f9f9;
+    background: var(--surface-2);
     border-left: 4px solid var(--accent);
     border-radius: 4px;
 }
@@ -104,7 +175,7 @@ h2 {
     gap: 8px;
     font-weight: 600;
     margin-bottom: 8px;
-    color: #222;
+    color: var(--heading);
     font-size: 15px;
 }
 
@@ -114,6 +185,12 @@ h2 {
     height: 24px;
     object-fit: contain;
     flex: none;
+}
+
+.next-fixture {
+    margin: 0 0 8px;
+    color: var(--muted);
+    font-size: 13px;
 }
 
 /* Competitions list */
@@ -128,47 +205,67 @@ h2 {
 
 .competitions-list li {
     margin: 0;
+    display: flex;
+    gap: 6px;
 }
 
-.competitions-list button {
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     color: var(--accent);
+    background: var(--chip-bg);
     text-decoration: none;
     padding: 6px 12px;
-    background: #f0f0f0;
     border-radius: 4px;
-    display: inline-block;
     transition: all 0.2s ease;
+    font: inherit;
     font-size: 14px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border);
     cursor: pointer;
 }
 
-.competitions-list button img,
-.competitions-list button svg {
-    display: inline-block;
-    vertical-align: middle;
+.chip svg {
     height: 1em;
     width: 1em;
-    margin: 0;
-    padding: 0;
+    flex: none;
 }
 
-.competitions-list button:hover {
+.chip:hover {
     background: var(--accent);
     color: var(--accent-text);
     border-color: var(--accent);
     box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 25%, transparent);
 }
 
-/* The download icon strokes with currentColor, so this keeps it visible on
-   light accents where white would disappear */
-.competitions-list button:hover img,
-.competitions-list button:hover svg {
-    color: var(--accent-text);
+.chip:active {
+    transform: scale(0.98);
 }
 
-.competitions-list button:active {
-    transform: scale(0.98);
+.chip:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+@media (prefers-color-scheme: dark) {
+    /* The accent is picked for contrast against a light chip, so on a dark one
+       it becomes the fill instead of the text — every club keeps its exact
+       colour rather than needing a second, washed-out variant */
+    .chip {
+        background: var(--accent);
+        color: var(--accent-text);
+        border-color: color-mix(in srgb, var(--accent) 70%, var(--text));
+    }
+
+    .chip:hover {
+        filter: brightness(1.15);
+    }
+
+    /* Near-black accents vanish against a dark card, so lift the marker toward
+       the text colour while keeping the hue */
+    .team-section {
+        border-left-color: color-mix(in srgb, var(--accent) 75%, var(--text));
+    }
 }
 
 /* Responsive design */
@@ -204,7 +301,7 @@ h2 {
         gap: 6px;
     }
 
-    .competitions-list button {
+    .chip {
         padding: 5px 10px;
         font-size: 13px;
     }

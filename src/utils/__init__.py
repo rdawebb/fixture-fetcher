@@ -1,6 +1,7 @@
 """Utilities module."""
 
 from .colors import is_legible, is_valid_hex, parse_club_colors, text_on
+from .dates import as_datetime
 from .errors import (
     APIError,
     ApplicationError,
@@ -48,6 +49,7 @@ __all__ = [
     "TimeoutError",
     "UnknownAPIError",
     "ValidationError",
+    "as_datetime",
     "is_legible",
     "is_valid_hex",
     "parse_club_colors",

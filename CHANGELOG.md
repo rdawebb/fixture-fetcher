@@ -12,14 +12,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Fixtures whose kick-off time is not yet confirmed are marked as tentative and labelled "Kick-off time TBC"
 - Team crests and club colours now appear on the calendars page
 - `data/overrides/team_colors.yaml` allows overriding of team's accent colour when the one derived from the API looks wrong; its location is configurable via `TEAM_COLORS_PATH`
+- A **Subscribe** button on each calendar hands the feed straight to Apple Calendar, Google Calendar or whichever app handles `webcal://` links, instead of requiring copy-and-paste
+- Each team shows the date and time of its next fixture, in the viewer's own timezone
+- The calendars page follows the system light/dark setting
 
 ### Changed
 
+- Each league on the calendars page is now a collapsible panel
+- Copying a calendar URL confirms with a "✓ Copied" label on the button itself rather than a browser alert box
 - Building calendars for several teams is now much faster: a competition's fixtures are fetched once and shared across every team in it, so builds no longer pause between teams
 - `API_RATE_LIMIT_DELAY` no longer has any effect on builds, as the waiting it controlled is no longer needed
 
 ### Fixed
 
+- The calendars page is now deployed when only its manifest changed, so the next-fixture dates stay current between fixture changes
 - Calendars now cover the current season's teams; published feeds had been pinned to the team list captured on the first automated build
 - Match locations (stadium names) now appear in calendar events
 - Calendar feeds are now valid iCalendar: every event carries the required `DTSTAMP`, and fixtures with no scheduled date are omitted rather than written without a date
@@ -28,7 +34,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ### Security
 
-- Team, league and competition names from the manifest are HTML-escaped before being rendered, and accent colours are validated as plain hex before being written into a `style` attribute
+- The calendars page is now built entirely from DOM nodes rather than interpolated HTML strings, so no manifest value can reach the page as markup; accent colours are still validated as plain hex before being used
 
 ## [0.4.0]
 

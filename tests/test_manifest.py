@@ -2,6 +2,7 @@
 
 import json
 import logging
+from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
 
 import pytest
@@ -12,6 +13,47 @@ from utils.manifest import (
     generate_manifest,
     load_color_overrides,
 )
+
+
+def _ics(*events: tuple[datetime, str | None]) -> str:
+    """Build an ICS document from (start, status) pairs.
+
+    Args:
+        events: Each event's start time and optional STATUS value.
+
+    Returns:
+        The ICS document as text.
+    """
+    lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//test//EN"]
+
+    for index, (start, status) in enumerate(events):
+        lines += [
+            "BEGIN:VEVENT",
+            f"UID:{index}@test",
+            "DTSTAMP:20260101T000000Z",
+            f"DTSTART:{start.astimezone(timezone.utc):%Y%m%dT%H%M%SZ}",
+            "SUMMARY:Test Match",
+        ]
+        if status:
+            lines.append(f"STATUS:{status}")
+        lines.append("END:VEVENT")
+
+    lines.append("END:VCALENDAR")
+
+    return "\n".join(lines) + "\n"
+
+
+def _team_from(manifest_file) -> dict:
+    """Read the single team entry out of a written manifest.
+
+    Args:
+        manifest_file: Path to the manifest JSON file.
+
+    Returns:
+        The first team entry of the first league.
+    """
+    with open(manifest_file) as f:
+        return json.load(f)["calendars"][0]["teams"][0]
 
 
 class TestUnslug:
@@ -683,3 +725,124 @@ class TestLoadColorOverrides:
             assert load_color_overrides(path) == {"Pale FC": "#EEEEEE"}
 
         assert "contrast" in caplog.text
+
+
+class TestNextFixture:
+    """Tests for the next_fixture field of a manifest team entry."""
+
+    def test_earliest_upcoming_kickoff_is_used(
+        self, calendars_with_single_team, tmp_path
+    ):
+        """Test the soonest future match wins, not the first one written."""
+        calendars_dir, team_dir = calendars_with_single_team
+        # ICS has second precision, so drop microseconds before comparing
+        now = datetime.now(timezone.utc).replace(microsecond=0)
+        soonest = now + timedelta(days=3)
+
+        (team_dir / "manchester-united.pl.ics").write_text(
+            _ics(
+                (now + timedelta(days=10), None),
+                (soonest, None),
+                (now + timedelta(days=20), None),
+            )
+        )
+        output_file = tmp_path / "manifest.json"
+
+        generate_manifest(calendars_dir, output_file)
+
+        assert (
+            _team_from(output_file)["next_fixture"] == soonest.astimezone().isoformat()
+        )
+
+    def test_past_fixtures_are_ignored(self, calendars_with_single_team, tmp_path):
+        """Test a match already played is not reported as the next one."""
+        calendars_dir, team_dir = calendars_with_single_team
+        # ICS has second precision, so drop microseconds before comparing
+        now = datetime.now(timezone.utc).replace(microsecond=0)
+        upcoming = now + timedelta(days=5)
+
+        (team_dir / "manchester-united.pl.ics").write_text(
+            _ics((now - timedelta(days=2), None), (upcoming, None))
+        )
+        output_file = tmp_path / "manifest.json"
+
+        generate_manifest(calendars_dir, output_file)
+
+        assert (
+            _team_from(output_file)["next_fixture"] == upcoming.astimezone().isoformat()
+        )
+
+    def test_cancelled_fixtures_are_skipped(self, calendars_with_single_team, tmp_path):
+        """Test a called-off match stays in the feed but isn't the next fixture."""
+        calendars_dir, team_dir = calendars_with_single_team
+        # ICS has second precision, so drop microseconds before comparing
+        now = datetime.now(timezone.utc).replace(microsecond=0)
+        playable = now + timedelta(days=8)
+
+        (team_dir / "manchester-united.pl.ics").write_text(
+            _ics((now + timedelta(days=2), "CANCELLED"), (playable, None))
+        )
+        output_file = tmp_path / "manifest.json"
+
+        generate_manifest(calendars_dir, output_file)
+
+        assert (
+            _team_from(output_file)["next_fixture"] == playable.astimezone().isoformat()
+        )
+
+    def test_omitted_when_nothing_upcoming(self, calendars_with_single_team, tmp_path):
+        """Test the key is absent off-season rather than emitted as null."""
+        calendars_dir, team_dir = calendars_with_single_team
+        # ICS has second precision, so drop microseconds before comparing
+        now = datetime.now(timezone.utc).replace(microsecond=0)
+
+        (team_dir / "manchester-united.pl.ics").write_text(
+            _ics((now - timedelta(days=30), None))
+        )
+        output_file = tmp_path / "manifest.json"
+
+        generate_manifest(calendars_dir, output_file)
+
+        assert "next_fixture" not in _team_from(output_file)
+
+    def test_earliest_across_competitions(
+        self, calendars_with_multiple_competitions, tmp_path
+    ):
+        """Test the next fixture spans all of a team's calendars."""
+        calendars_dir, team_dir = calendars_with_multiple_competitions
+        # ICS has second precision, so drop microseconds before comparing
+        now = datetime.now(timezone.utc).replace(microsecond=0)
+        cup_tie = now + timedelta(days=4)
+
+        (team_dir / "manchester-united.pl.ics").write_text(
+            _ics((now + timedelta(days=9), None))
+        )
+        (team_dir / "manchester-united.fa.ics").write_text(_ics((cup_tie, None)))
+        output_file = tmp_path / "manifest.json"
+
+        generate_manifest(calendars_dir, output_file)
+
+        assert (
+            _team_from(output_file)["next_fixture"] == cup_tie.astimezone().isoformat()
+        )
+
+    def test_unreadable_calendar_is_not_fatal(
+        self, calendars_with_multiple_competitions, tmp_path, caplog
+    ):
+        """Test a corrupt file costs its own date, not the whole manifest."""
+        calendars_dir, team_dir = calendars_with_multiple_competitions
+        # ICS has second precision, so drop microseconds before comparing
+        now = datetime.now(timezone.utc).replace(microsecond=0)
+        readable = now + timedelta(days=6)
+
+        (team_dir / "manchester-united.pl.ics").write_text("not a calendar at all")
+        (team_dir / "manchester-united.fa.ics").write_text(_ics((readable, None)))
+        output_file = tmp_path / "manifest.json"
+
+        with caplog.at_level(logging.WARNING):
+            generate_manifest(calendars_dir, output_file)
+
+        team = _team_from(output_file)
+
+        assert team["next_fixture"] == readable.astimezone().isoformat()
+        assert len(team["competitions"]) == 2
