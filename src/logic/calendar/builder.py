@@ -61,4 +61,5 @@ class CalendarBuilder:
             The ICS formatted calendar data.
         """
         logger.debug("Converting calendar to ICS format")
+        self.calendar.add_missing_timezones()
         return self.calendar.to_ical()

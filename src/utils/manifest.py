@@ -117,8 +117,8 @@ def generate_manifest(
 
             team_slug = team_dir.name
             record = team_index.get(team_slug, {})
-            # Un-slugging mangles names ("man-utd", "afc-bournemouth"), so it is
-            # only a fallback for teams missing from the cache
+            # Un-slugging mangles names, so it is only a fallback for teams
+            # missing from the cache
             team_name = record.get("name") or _unslug(team_slug)
 
             competitions: list[dict[str, str]] = []
