@@ -158,10 +158,9 @@ class TestICSWriter:
         with open(output_path, "rb") as f:
             cal = Calendar.from_ical(f.read())
 
-        event = next(c for c in cal.walk() if c.name == "VEVENT")
-        dtstamp = event["DTSTAMP"].dt
+        dtstamp = cal.events[0].DTSTAMP
 
-        assert dtstamp.tzinfo is not None
+        assert dtstamp is not None and dtstamp.tzinfo is not None
         assert before <= dtstamp <= datetime.now(timezone.utc)
 
     def test_write_creates_parent_directories(self, tmp_path):

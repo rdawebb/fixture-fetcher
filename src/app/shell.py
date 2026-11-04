@@ -52,9 +52,8 @@ class CLI:
             ]
 
             self.console.print("Select competitions to fetch fixtures for:")
-            selected_competition = cast(
-                list[str],
-                select_multiple(competitions, tick_character="⚽️", ticked_indices=[0]),
+            selected_competition = select_multiple(
+                competitions, tick_character="⚽️", ticked_indices=[0]
             )
             self.console.print(f"You selected: {', '.join(selected_competition)}")
 
